@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Android Transport Investigator</string>
+
+    <string name="swtchUsbSupport">USB support</string>
+    <string name="swtchBtSupport">BT support</string>
+    <string name="swtchTcpSupport">TCP support</string>
+
+    <string name="loggerInit">Logger has been inited</string>
+
 </resources>

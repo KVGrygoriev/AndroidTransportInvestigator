@@ -6,13 +6,60 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <FrameLayout
+        android:id="@+id/displayRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+
+            android:id="@+id/swtchGridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="1"
+            android:rowCount="4"
+            android:layout_marginTop="5dp">
+
+            <Switch
+                android:id="@+id/swtchBtSupport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/swtchBtSupport"
+                android:textSize="30sp"/>
+
+            <Switch
+                android:id="@+id/swtchUsbSupport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/swtchUsbSupport"
+                android:textSize="30sp"/>
+
+            <Switch
+                android:id="@+id/swtchTcpSupport"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/swtchTcpSupport"
+                android:textSize="30sp"/>
+
+        </GridLayout>
+
+    </FrameLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            android:layout_marginTop="130dp"
+            android:text="@string/loggerInit"/>
+
+    </LinearLayout>
+
+
 
 </android.support.constraint.ConstraintLayout>
