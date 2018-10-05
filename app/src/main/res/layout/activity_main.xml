@@ -55,6 +55,7 @@
             android:id="@+id/loggerDisplay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:scrollbars = "vertical"
             android:layout_marginTop="130dp"
             android:text="@string/loggerInit"/>
 

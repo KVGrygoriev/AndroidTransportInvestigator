@@ -4,6 +4,7 @@ import just.application.androidtransportinvestigator.Logger;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         swtchTcpSupport = (Switch) findViewById(R.id.swtchTcpSupport);
 
         logger = (TextView) findViewById(R.id.loggerDisplay);
+        logger.setMovementMethod(new ScrollingMovementMethod());
 
         registerListener();
     }

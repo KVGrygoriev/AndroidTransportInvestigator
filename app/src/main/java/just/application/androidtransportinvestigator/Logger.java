@@ -6,7 +6,7 @@ import android.widget.TextView;
 public final class Logger {
 
     private static void logToTextView(TextView view, String tag, String msg) {
-        view.append("[" + tag + "] " + msg + "\n");
+        view.setText("[" + tag + "] " + msg + "\n" + view.getText());
     }
 
     /**
