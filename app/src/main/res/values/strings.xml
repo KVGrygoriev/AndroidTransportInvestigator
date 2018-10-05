@@ -5,6 +5,6 @@
     <string name="swtchBtSupport">BT support</string>
     <string name="swtchTcpSupport">TCP support</string>
 
-    <string name="loggerInit">Logger has been inited</string>
+    <string name="loggerInit">Logger has been inited\n</string>
 
 </resources>
