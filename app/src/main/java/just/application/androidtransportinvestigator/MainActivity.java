@@ -2,10 +2,10 @@ package just.application.androidtransportinvestigator;
 
 import just.application.androidtransportinvestigator.Logger;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -30,6 +30,10 @@ public class MainActivity extends AppCompatActivity {
         logger.setMovementMethod(new ScrollingMovementMethod());
 
         registerListener();
+
+
+        Intent proxyIntent = new Intent(this, SdlService.class);
+        startService(proxyIntent);
     }
 
     private void registerListener() {
