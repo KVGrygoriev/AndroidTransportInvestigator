@@ -31,8 +31,11 @@ public class MainActivity extends AppCompatActivity {
 
         registerListener();
 
-
         Intent proxyIntent = new Intent(this, SdlService.class);
+        proxyIntent.putExtra("TransportType", "TCP");
+        //TODO make handler
+        //TODO pass BluetoothType
+        //TODO pass BluetoothSecurityLevel
         startService(proxyIntent);
     }
 

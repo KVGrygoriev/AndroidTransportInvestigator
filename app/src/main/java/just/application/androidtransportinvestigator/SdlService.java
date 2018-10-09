@@ -4,10 +4,13 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.hardware.usb.UsbAccessory;
+import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
@@ -79,7 +82,12 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
 import com.smartdevicelink.proxy.rpc.enums.HMILevel;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.transport.BTTransportConfig;
+import com.smartdevicelink.transport.BaseTransportConfig;
+import com.smartdevicelink.transport.MultiplexTransportConfig;
+import com.smartdevicelink.transport.TCPTransportConfig;
 import com.smartdevicelink.transport.TransportConstants;
+import com.smartdevicelink.transport.USBTransportConfig;
 
 /**
  * A SdlService manages the lifecycle of an SDL Proxy.
@@ -90,8 +98,17 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     private static final String TAG = "SdlService";
 
+    private static final String APP_NAME = "SDL-Android Transport Investigator";
+    private static final String APP_ID = "8675309";
     private static final int FOREGROUND_SERVICE_ID = 111;
 
+    // TCP/IP transport config
+    // The default port is 12345
+    // The IP is of the machine that is running SDL Core
+    private static final int TCP_PORT = 12345;
+    private static final String DEV_MACHINE_IP_ADDRESS = "172.31.239.143"; //TODO read ip from input
+
+    // variable to create and call functions of the SyncProxy
     private SdlProxyALM proxy = null;
 
     private boolean firstNonHmiNone = true;
@@ -127,9 +144,12 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //Check if this was started with a flag to force a transport connect
         boolean forced = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        startProxy(forced, intent);
+        String transportType = intent.getStringExtra((String) "TransportType");
+        String bluetoothType = intent.getStringExtra((String) "BluetoothType");
+        String bluetoothSecurityLevel = intent.getStringExtra((String) "BluetoothSecurityLevel");
+
+        startProxy(forced, intent, transportType, bluetoothType, bluetoothSecurityLevel);
 
         return START_STICKY;
     }
@@ -144,12 +164,102 @@ public class SdlService extends Service implements IProxyListenerALM {
         super.onDestroy();
     }
 
-    private void startProxy(boolean forceConnect, Intent intent) {
-        Log.i(TAG, "Trying to start proxy");
+    private void startProxy(boolean forceConnect,
+                            Intent intent,
+                            String transportType,
+                            String bluetoothType,
+                            String bluetoothSecurityLevel) {
+
+        Log.i(TAG, "Trying to start proxy. TransportType is " + transportType);
+
+        if (null == proxy) {
+            try {
+                Log.i(TAG, "Starting SDL Proxy");
+                BaseTransportConfig transport = null;
+
+                switch (transportType) {
+                    case "USB":
+                        if (intent != null && intent.hasExtra(UsbManager.EXTRA_ACCESSORY)) { //If we want to support USB transport
+                            if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.HONEYCOMB) {
+                                Log.e(TAG, "Unable to start proxy. Android OS version is too low");
+                                return;
+                            } else {
+                                //We have a usb transport
+                                transport = new USBTransportConfig(getBaseContext(), (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY));
+                                Log.d(TAG, "USB created.");
+                            }
+                        } else {
+                            Log.e(TAG, "SHIT");
+                        }
+                        break;
+
+                    case "TCP":
+                        transport = new TCPTransportConfig(TCP_PORT, DEV_MACHINE_IP_ADDRESS, true);
+                        break;
+
+                    case "BT":
+                        if (bluetoothType.equals("MBT")) {
+
+                            int securityLevel;
+
+                            if(bluetoothSecurityLevel.equals("HIGH")){
+                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH;
+                            } else if (bluetoothSecurityLevel.equals("MED")) {
+                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_MED;
+                            } else if (bluetoothSecurityLevel.equals("LOW")) {
+                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_LOW;
+                            } else {
+                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF;
+                            }
+
+                            transport = new MultiplexTransportConfig(this, APP_ID, securityLevel);
+
+                        } else if (bluetoothSecurityLevel.equals("LBT")) {
+                            transport = new BTTransportConfig();
+                        } else {
+                            Log.e(TAG, "Unable to start proxy. Need to specify Bluetooth protocol");
+                            return;
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+
+                if (transport != null) {
+                    proxy = new SdlProxyALM(this, APP_NAME, true, APP_ID, transport);
+                } else {
+                    Log.w(TAG, "Proxy was not created. Input params: transportType = " + transportType +
+                    "; bluetoothType = " + bluetoothType +
+                    "; bluetoothSecurityLevel = " + bluetoothSecurityLevel);
+                }
+
+            } catch (SdlException e) {
+                e.printStackTrace();
+                // error creating proxy, returned proxy = null
+                if (null == proxy) {
+                    stopSelf();
+                }
+            }
+        } else if(forceConnect) {
+            proxy.forceOnConnected();
+        }
     }
 
     private void disposeSyncProxy() {
-        Log.i(TAG, "Trying to dispose proxy");
+
+        if (proxy != null) {
+            try {
+                proxy.dispose();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                proxy = null;
+            }
+        }
+
+        this.firstNonHmiNone = true;
+        this.isVehicleDataSubscribed = false;
     }
 
     @Override
@@ -205,6 +315,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onAddCommandResponse(AddCommandResponse response) {
         Log.i(TAG, "AddCommand response from SDL: " + response.getResultCode().name());
+
     }
 
     /*  Vehicle Data   */
@@ -225,6 +336,8 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnVehicleData(OnVehicleData notification) {
         Log.i(TAG, "Vehicle data notification from SDL");
+        //TODO Put your vehicle data code here
+        //ie, notification.getSpeed().
     }
 
     @Override
