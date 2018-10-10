@@ -1,7 +1,5 @@
 package just.application.androidtransportinvestigator;
 
-import just.application.androidtransportinvestigator.Defines;
-
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,11 +9,15 @@ import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.smartdevicelink.transport.MultiplexTransportConfig;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
     private Defines.TransportType transportType = Defines.TransportType.TCP;
+    private int bluetoothSecurityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF;
+    private String userIp = "127.0.0.1";
 
     RadioButton btnBt, btnUsb, btnTcp;
     Button btnAdjustTransport, btnAcceptTransport;
@@ -42,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
     private void registerListener() {
         btnBt.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                transportType = Defines.TransportType.BT;
+                /**
+                 * Multiplex bluetooth by default
+                 */
+                transportType = Defines.TransportType.MBT;
                 Logger.Debug(logger, TAG, ((Button)v).getText() + " transport selected");
             }
         });
@@ -63,12 +68,22 @@ public class MainActivity extends AppCompatActivity {
 
         btnAcceptTransport.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                /**
+                 * Setting needed fields and creating proxy
+                 */
                 Intent proxyIntent = new Intent(v.getContext(), SdlService.class);
-                proxyIntent.putExtra("TransportType", /*transportType*/"TCP");
+                proxyIntent.putExtra("TransportType", transportType);
 
-                if (Defines.TransportType.BT == transportType) {
-                    //TODO pass BluetoothType
-                    //TODO pass BluetoothSecurityLevel
+                switch (transportType) {
+                    case MBT:
+                        proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
+                        break;
+
+                    case TCP:
+                        proxyIntent.putExtra("UserIp", userIp);
+
+                    default:
+                        break;
                 }
 
                 startService(proxyIntent);
@@ -80,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // TODO handler
+                // TODO bluetoothSecurityLevel
+                // TODO MBT or LBT
+                // TODO IP for TCP
             }
         });
     }

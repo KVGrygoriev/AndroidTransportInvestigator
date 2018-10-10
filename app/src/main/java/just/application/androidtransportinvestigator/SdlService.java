@@ -100,13 +100,13 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     private static final String APP_NAME = "SDL-Android Transport Investigator";
     private static final String APP_ID = "8675309";
+
+    private Defines.TransportType transportType = Defines.TransportType.NONE;
+
     private static final int FOREGROUND_SERVICE_ID = 111;
 
-    // TCP/IP transport config
-    // The default port is 12345
-    // The IP is of the machine that is running SDL Core
+    // SDL's default port is 12345
     private static final int TCP_PORT = 12345;
-    private static final String DEV_MACHINE_IP_ADDRESS = "172.31.239.143"; //TODO read ip from input
 
     // variable to create and call functions of the SyncProxy
     private SdlProxyALM proxy = null;
@@ -144,12 +144,13 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        boolean forced = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
-        String transportType = intent.getStringExtra((String) "TransportType");
-        String bluetoothType = intent.getStringExtra((String) "BluetoothType");
-        String bluetoothSecurityLevel = intent.getStringExtra((String) "BluetoothSecurityLevel");
 
-        startProxy(forced, intent, transportType, bluetoothType, bluetoothSecurityLevel);
+        boolean forced = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
+        transportType = (Defines.TransportType)intent.getSerializableExtra( "TransportType");
+        int bluetoothSecurityLevel = intent.getIntExtra("BluetoothSecurityLevel", 0);
+        String userIp = intent.getStringExtra((String) "UserIp");
+
+        startProxy(forced, intent, userIp, bluetoothSecurityLevel);
 
         return START_STICKY;
     }
@@ -166,9 +167,8 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     private void startProxy(boolean forceConnect,
                             Intent intent,
-                            String transportType,
-                            String bluetoothType,
-                            String bluetoothSecurityLevel) {
+                            String userIp,
+                            int bluetoothSecurityLevel) {
 
         Log.i(TAG, "Trying to start proxy. TransportType is " + transportType);
 
@@ -178,7 +178,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 BaseTransportConfig transport = null;
 
                 switch (transportType) {
-                    case "USB":
+                    case USB:
                         if (intent != null && intent.hasExtra(UsbManager.EXTRA_ACCESSORY)) { //If we want to support USB transport
                             if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.HONEYCOMB) {
                                 Log.e(TAG, "Unable to start proxy. Android OS version is too low");
@@ -188,38 +188,19 @@ public class SdlService extends Service implements IProxyListenerALM {
                                 transport = new USBTransportConfig(getBaseContext(), (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY));
                                 Log.d(TAG, "USB created.");
                             }
-                        } else {
-                            Log.e(TAG, "SHIT");
                         }
                         break;
 
-                    case "TCP":
-                        transport = new TCPTransportConfig(TCP_PORT, DEV_MACHINE_IP_ADDRESS, true);
+                    case TCP:
+                        transport = new TCPTransportConfig(TCP_PORT, userIp, true);
                         break;
 
-                    case "BT":
-                        if (bluetoothType.equals("MBT")) {
+                    case MBT:
+                        transport = new MultiplexTransportConfig(this, APP_ID, bluetoothSecurityLevel);
+                        break;
 
-                            int securityLevel;
-
-                            if(bluetoothSecurityLevel.equals("HIGH")){
-                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH;
-                            } else if (bluetoothSecurityLevel.equals("MED")) {
-                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_MED;
-                            } else if (bluetoothSecurityLevel.equals("LOW")) {
-                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_LOW;
-                            } else {
-                                securityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF;
-                            }
-
-                            transport = new MultiplexTransportConfig(this, APP_ID, securityLevel);
-
-                        } else if (bluetoothSecurityLevel.equals("LBT")) {
-                            transport = new BTTransportConfig();
-                        } else {
-                            Log.e(TAG, "Unable to start proxy. Need to specify Bluetooth protocol");
-                            return;
-                        }
+                    case LBT:
+                        transport = new BTTransportConfig();
                         break;
 
                     default:
@@ -230,7 +211,6 @@ public class SdlService extends Service implements IProxyListenerALM {
                     proxy = new SdlProxyALM(this, APP_NAME, true, APP_ID, transport);
                 } else {
                     Log.w(TAG, "Proxy was not created. Input params: transportType = " + transportType +
-                    "; bluetoothType = " + bluetoothType +
                     "; bluetoothSecurityLevel = " + bluetoothSecurityLevel);
                 }
 
@@ -264,6 +244,12 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onProxyClosed(String info, Exception e, SdlDisconnectedReason reason) {
+        stopSelf();
+        if(reason.equals(SdlDisconnectedReason.LANGUAGE_CHANGE) && transportType.equals(Defines.TransportType.MBT)){
+            Intent intent = new Intent(TransportConstants.START_ROUTER_SERVICE_ACTION);
+            //TODO intent.putExtra(SdlReceiver.RECONNECT_LANG_CHANGE, true);
+            sendBroadcast(intent);
+        }
     }
 
     @Override
@@ -281,9 +267,9 @@ public class SdlService extends Service implements IProxyListenerALM {
             firstNonHmiNone = false;
 
             // Other app setup (SubMenu, CreateChoiceSet, etc.) would go here
-        }else{
+        }else {
             //We have HMI_NONE
-            if(notification.getFirstRun()){
+            if (notification.getFirstRun()) {
                 Log.i(TAG, "HMI level other");
             }
         }

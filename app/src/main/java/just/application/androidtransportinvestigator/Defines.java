@@ -2,7 +2,9 @@ package just.application.androidtransportinvestigator;
 
 class Defines {
     enum TransportType {
-        BT,
+        NONE,
+        MBT,
+        LBT,
         USB,
         TCP
     };
