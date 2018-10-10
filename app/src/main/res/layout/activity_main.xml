@@ -7,59 +7,100 @@
     tools:context=".MainActivity">
 
     <FrameLayout
-        android:id="@+id/displayRoot"
+        android:id="@+id/rootFrame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
 
-            android:id="@+id/swtchGridLayout"
+            android:id="@+id/gridLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="1"
-            android:rowCount="4"
+            android:columnCount="2"
+            android:rowCount="3"
+            android:layout_marginLeft="5dp"
             android:layout_marginTop="5dp">
 
-            <Switch
-                android:id="@+id/swtchBtSupport"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/swtchBtSupport"
-                android:textSize="30sp"/>
+            <TextView
+                android:id="@+id/transportLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_column="0"
+                android:layout_row="0"
+                android:text="@string/transportLabel"
+                android:textColor="@color/colorBlack"
+                android:textSize="20dp" />
 
-            <Switch
-                android:id="@+id/swtchUsbSupport"
-                android:layout_width="match_parent"
+            <RadioGroup
+                android:id="@+id/transportRadioGroup"
+                android:layout_column="1"
+                android:layout_row="0"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/swtchUsbSupport"
-                android:textSize="30sp"/>
+                android:orientation="horizontal"
+                android:checkedButton="@+id/rdBtnTcp" >
 
-            <Switch
-                android:id="@+id/swtchTcpSupport"
-                android:layout_width="match_parent"
+                <RadioButton
+                    android:id="@+id/rdBtnBt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="0"
+                    android:text="@string/btnBt"
+                    android:textSize="20sp"/>
+
+                <RadioButton
+                    android:id="@+id/rdBtnUsb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:text="@string/btnUsb"
+                    android:textSize="20sp"/>
+
+                <RadioButton
+                    android:id="@+id/rdBtnTcp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_column="2"
+                    android:text="@string/btnTcp"
+                    android:textSize="20sp"/>
+            </RadioGroup>
+
+
+            <Button
+                android:id="@+id/btnAdjustTransport"
+                android:layout_width="180sp"
                 android:layout_height="wrap_content"
-                android:text="@string/swtchTcpSupport"
-                android:textSize="30sp"/>
+                android:layout_gravity="center"
+                android:layout_column="1"
+                android:layout_row="1"
+                android:text="@string/btnAdjustTransport"
+                android:textSize="15sp"
+                />
 
+            <Button
+                android:id="@+id/btnAcceptTransport"
+                android:layout_width="180sp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_column="0"
+                android:layout_row="1"
+                android:text="@string/btnAcceptTransport"
+                android:textSize="15sp"
+                />
         </GridLayout>
-
-    </FrameLayout>
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/loggerDisplay"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars = "vertical"
-            android:layout_marginTop="130dp"
-            android:text="@string/loggerInit"/>
 
-    </LinearLayout>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="90dp"
+            android:scrollbars = "vertical"
+            android:text="@string/loggerInit"/>
+    </FrameLayout>
+
 
 
 
