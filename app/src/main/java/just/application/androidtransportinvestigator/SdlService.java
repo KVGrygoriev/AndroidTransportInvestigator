@@ -80,7 +80,6 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
-import com.smartdevicelink.proxy.rpc.enums.HMILevel;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.transport.BTTransportConfig;
 import com.smartdevicelink.transport.BaseTransportConfig;
@@ -254,24 +253,42 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnHMIStatus(OnHMIStatus notification) {
-        if(notification.getHmiLevel().equals(HMILevel.HMI_FULL)){
-            if (notification.getFirstRun()) {
-                Log.i(TAG, "HMI_FULL");
-            }
-            // Other HMI (Show, PerformInteraction, etc.) would go here
-        }
 
-        if(!notification.getHmiLevel().equals(HMILevel.HMI_NONE)
-                && firstNonHmiNone){
-            Log.i(TAG, "HMI_NONE");
-            firstNonHmiNone = false;
+        Log.i(TAG, "HMI state " + notification.getHmiLevel().name());
 
-            // Other app setup (SubMenu, CreateChoiceSet, etc.) would go here
-        }else {
-            //We have HMI_NONE
-            if (notification.getFirstRun()) {
-                Log.i(TAG, "HMI level other");
-            }
+        switch (notification.getHmiLevel()) {
+            case HMI_FULL:
+                if (notification.getFirstRun()) {
+                    // send welcome message if applicable
+                    //performWelcomeMessage();
+                }
+                // Other HMI (Show, PerformInteraction, etc.) would go here
+
+                if (firstNonHmiNone) {
+                    //sendCommands();
+                    //uploadImages();
+                    //firstNonHmiNone = false;
+                }
+                break;
+
+            case HMI_LIMITED:
+            case HMI_BACKGROUND:
+                if (firstNonHmiNone) {
+                    //sendCommands();
+                    //uploadImages();
+                    //firstNonHmiNone = false;
+                }
+
+                break;
+
+            case HMI_NONE:
+                if(notification.getFirstRun()) {
+                    //uploadImages();
+                }
+                break;
+
+            default:
+                return;
         }
     }
 
