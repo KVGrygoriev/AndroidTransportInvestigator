@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="just.application.androidtransportinvestigator">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -25,18 +26,31 @@
 
         <service
             android:name=".SdlService"
-            android:enabled="true">
-        </service>
-
+            android:enabled="true"></service>
         <service
             android:name=".SdlRouterService"
             android:exported="true"
             android:process="com.smartdevicelink.router">
             <intent-filter>
-                <action android:name="com.smartdevicelink.router.service"/>
+                <action android:name="com.smartdevicelink.router.service" />
             </intent-filter>
-            <meta-data android:name="@string/sdl_router_service_version_name"  android:value="@integer/sdl_router_service_version_value" />
+
+            <meta-data
+                android:name="@string/sdl_router_service_version_name"
+                android:value="@integer/sdl_router_service_version_value" />
         </service>
+
+        <receiver
+            android:name=".SdlReceiver"
+            android:enabled="true"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.smartdevicelink.USB_ACCESSORY_ATTACHED"/> <!--For AOA -->
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="sdl.router.startservice" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

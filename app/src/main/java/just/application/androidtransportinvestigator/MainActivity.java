@@ -11,6 +11,10 @@ import android.widget.TextView;
 
 import com.smartdevicelink.transport.MultiplexTransportConfig;
 
+import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
+import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
+import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -47,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Multiplex bluetooth by default
                  */
-                transportType = Defines.TransportType.MBT;
+                transportType = MBT;
                 Logger.Debug(logger, TAG, ((Button)v).getText() + " transport selected");
             }
         });
@@ -71,23 +75,29 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * Setting needed fields and creating proxy
                  */
-                Intent proxyIntent = new Intent(v.getContext(), SdlService.class);
-                proxyIntent.putExtra("TransportType", transportType);
+                if (transportType.equals(MBT)) {
+                    Logger.Debug(logger, TAG, "SdlReceiver.queryForConnectedService()");
+                    SdlReceiver.queryForConnectedService(v.getContext());
+                } else {
+                    if (transportType.equals(TCP) || transportType.equals(LBT)) {
+                        Intent proxyIntent = new Intent(v.getContext(), SdlService.class);
+                        proxyIntent.putExtra("TransportType", transportType);
 
-                switch (transportType) {
-                    case MBT:
-                        proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
-                        break;
+                        switch (transportType) {
+                            case MBT:
+                                proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
+                                break;
 
-                    case TCP:
-                        proxyIntent.putExtra("UserIp", userIp);
+                            case TCP:
+                                proxyIntent.putExtra("UserIp", userIp);
 
-                    default:
-                        break;
+                            default:
+                                break;
+                        }
+
+                        startService(proxyIntent);
+                    }
                 }
-
-                startService(proxyIntent);
-
             }
         });
 
