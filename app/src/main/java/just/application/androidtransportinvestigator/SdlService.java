@@ -144,12 +144,11 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        boolean forced = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
         transportType = (Defines.TransportType)intent.getSerializableExtra( "TransportType");
         int bluetoothSecurityLevel = intent.getIntExtra("BluetoothSecurityLevel", 0);
         String userIp = intent.getStringExtra((String) "UserIp");
 
-        startProxy(forced, intent, userIp, bluetoothSecurityLevel);
+        startProxy(intent, userIp, bluetoothSecurityLevel);
 
         return START_STICKY;
     }
@@ -164,12 +163,13 @@ public class SdlService extends Service implements IProxyListenerALM {
         super.onDestroy();
     }
 
-    private void startProxy(boolean forceConnect,
-                            Intent intent,
+    private void startProxy(Intent intent,
                             String userIp,
                             int bluetoothSecurityLevel) {
 
         Log.i(TAG, "Trying to start proxy. TransportType is " + transportType);
+
+        boolean forceConnect = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
 
         if (null == proxy) {
             try {
@@ -183,10 +183,11 @@ public class SdlService extends Service implements IProxyListenerALM {
                                 Log.e(TAG, "Unable to start proxy. Android OS version is too low");
                                 return;
                             } else {
-                                //We have a usb transport
                                 transport = new USBTransportConfig(getBaseContext(), (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY));
                                 Log.d(TAG, "USB created.");
                             }
+                        } else {
+                            Log.e(TAG, "Unable to start proxy. " + (intent != null ? "USB doesn't have EXTRA_ACCESSORY." : "Intent is null."));
                         }
                         break;
 
@@ -209,8 +210,8 @@ public class SdlService extends Service implements IProxyListenerALM {
                 if (transport != null) {
                     proxy = new SdlProxyALM(this, APP_NAME, true, APP_ID, transport);
                 } else {
-                    Log.w(TAG, "Proxy was not created. Input params: transportType = " + transportType +
-                    "; bluetoothSecurityLevel = " + bluetoothSecurityLevel);
+                    Log.e(TAG, "Proxy was not created. Input params: transportType = " + transportType +
+                            "; bluetoothSecurityLevel = " + bluetoothSecurityLevel);
                 }
 
             } catch (SdlException e) {
@@ -339,8 +340,6 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnVehicleData(OnVehicleData notification) {
         Log.i(TAG, "Vehicle data notification from SDL");
-        //TODO Put your vehicle data code here
-        //ie, notification.getSpeed().
     }
 
     @Override
