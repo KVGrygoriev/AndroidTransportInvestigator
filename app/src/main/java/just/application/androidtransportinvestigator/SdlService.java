@@ -11,10 +11,12 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.smartdevicelink.exception.SdlException;
+import com.smartdevicelink.proxy.RPCRequest;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
 import com.smartdevicelink.proxy.interfaces.IProxyListenerALM;
+import com.smartdevicelink.proxy.rpc.AddCommand;
 import com.smartdevicelink.proxy.rpc.AddCommandResponse;
 import com.smartdevicelink.proxy.rpc.AddSubMenuResponse;
 import com.smartdevicelink.proxy.rpc.AlertManeuverResponse;
@@ -37,6 +39,7 @@ import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.Image;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
+import com.smartdevicelink.proxy.rpc.MenuParams;
 import com.smartdevicelink.proxy.rpc.OnAudioPassThru;
 import com.smartdevicelink.proxy.rpc.OnButtonEvent;
 import com.smartdevicelink.proxy.rpc.OnButtonPress;
@@ -92,6 +95,8 @@ import com.smartdevicelink.transport.TransportConstants;
 import com.smartdevicelink.transport.USBTransportConfig;
 import com.smartdevicelink.util.CorrelationIdGenerator;
 
+import java.util.Collections;
+
 /**
  * A SdlService manages the lifecycle of an SDL Proxy.
  * The SDLService enables auto-start by creating the SDL Proxy, which then waits for a connection from SDL.
@@ -106,10 +111,13 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     private Defines.TransportType transportType = Defines.TransportType.NONE;
 
-    private static final String IMAGE_FILENAME  	= "jarvis_icon.png";
+    private static final String IMAGE_FILENAME = "jarvis_icon.png";
 
-    private static final String WELCOME_SHOW 			= "Welcome to HelloSDL";
-    private static final String WELCOME_JARVIS_SPEAK 	= "Mr. Stark, we need to talk";
+    private static final String WELCOME_SHOW = "Welcome to HelloSDL";
+    private static final String WELCOME_JARVIS_SPEAK = "Mr. Stark, we need to talk";
+
+    private static final String TEST_COMMAND_NAME = "Test Command";
+    private static final int TEST_COMMAND_ID = 1;
 
     private static final int FOREGROUND_SERVICE_ID = 111;
 
@@ -251,6 +259,30 @@ public class SdlService extends Service implements IProxyListenerALM {
         this.isVehicleDataSubscribed = false;
     }
 
+    /**
+     *  Add commands for the app on SDL.
+     */
+    private void sendCommands() {
+        AddCommand command = new AddCommand();
+        MenuParams params = new MenuParams();
+        params.setMenuName(TEST_COMMAND_NAME);
+        command.setCmdID(TEST_COMMAND_ID);
+        command.setMenuParams(params);
+        command.setVrCommands(Collections.singletonList(TEST_COMMAND_NAME));
+        sendRpcRequest(command);
+    }
+    /**
+     * Sends an RPC Request to the connected head unit. Automatically adds a correlation id.
+     * @param request the rpc request that is to be sent to the module
+     */
+    private void sendRpcRequest(RPCRequest request){
+        try {
+            proxy.sendRPCRequest(request);
+        } catch (SdlException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onProxyClosed(String info, Exception e, SdlDisconnectedReason reason) {
         stopSelf();
@@ -273,18 +305,16 @@ public class SdlService extends Service implements IProxyListenerALM {
                 }
 
                 if (firstNonHmiNone) {
-                    //sendCommands();
-                    //uploadImages();
-                    //firstNonHmiNone = false;
+                    sendCommands();
+                    firstNonHmiNone = false;
                 }
                 break;
 
             case HMI_LIMITED:
             case HMI_BACKGROUND:
                 if (firstNonHmiNone) {
-                    //sendCommands();
-                    //uploadImages();
-                    //firstNonHmiNone = false;
+                    sendCommands();
+                    firstNonHmiNone = false;
                 }
 
                 break;
