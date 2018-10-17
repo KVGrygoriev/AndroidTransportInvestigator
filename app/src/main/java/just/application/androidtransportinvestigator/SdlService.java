@@ -35,6 +35,7 @@ import com.smartdevicelink.proxy.rpc.GetInteriorVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetSystemCapabilityResponse;
 import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
+import com.smartdevicelink.proxy.rpc.Image;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
 import com.smartdevicelink.proxy.rpc.OnAudioPassThru;
 import com.smartdevicelink.proxy.rpc.OnButtonEvent;
@@ -80,13 +81,16 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
+import com.smartdevicelink.proxy.rpc.enums.ImageType;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
+import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
 import com.smartdevicelink.transport.BTTransportConfig;
 import com.smartdevicelink.transport.BaseTransportConfig;
 import com.smartdevicelink.transport.MultiplexTransportConfig;
 import com.smartdevicelink.transport.TCPTransportConfig;
 import com.smartdevicelink.transport.TransportConstants;
 import com.smartdevicelink.transport.USBTransportConfig;
+import com.smartdevicelink.util.CorrelationIdGenerator;
 
 /**
  * A SdlService manages the lifecycle of an SDL Proxy.
@@ -101,6 +105,11 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final String APP_ID = "8675309";
 
     private Defines.TransportType transportType = Defines.TransportType.NONE;
+
+    private static final String IMAGE_FILENAME  	= "jarvis_icon.png";
+
+    private static final String WELCOME_SHOW 			= "Welcome to HelloSDL";
+    private static final String WELCOME_JARVIS_SPEAK 	= "Mr. Stark, we need to talk";
 
     private static final int FOREGROUND_SERVICE_ID = 111;
 
@@ -247,7 +256,7 @@ public class SdlService extends Service implements IProxyListenerALM {
         stopSelf();
         if(reason.equals(SdlDisconnectedReason.LANGUAGE_CHANGE) && transportType.equals(Defines.TransportType.MBT)){
             Intent intent = new Intent(TransportConstants.START_ROUTER_SERVICE_ACTION);
-            //TODO intent.putExtra(SdlReceiver.RECONNECT_LANG_CHANGE, true);
+            intent.putExtra(SdlReceiver.RECONNECT_LANG_CHANGE, true);
             sendBroadcast(intent);
         }
     }
@@ -260,10 +269,8 @@ public class SdlService extends Service implements IProxyListenerALM {
         switch (notification.getHmiLevel()) {
             case HMI_FULL:
                 if (notification.getFirstRun()) {
-                    // send welcome message if applicable
-                    //performWelcomeMessage();
+                    performWelcomeMessage();
                 }
-                // Other HMI (Show, PerformInteraction, etc.) would go here
 
                 if (firstNonHmiNone) {
                     //sendCommands();
@@ -291,6 +298,27 @@ public class SdlService extends Service implements IProxyListenerALM {
             default:
                 return;
         }
+    }
+
+    /**
+     * Will show a sample welcome message on screen as well as speak a sample welcome message
+     */
+    private void performWelcomeMessage(){
+        try {
+            Image image = new Image();
+            image.setValue(IMAGE_FILENAME);
+            image.setImageType(ImageType.DYNAMIC);
+
+            //Set the welcome message on screen
+            proxy.show(APP_NAME, WELCOME_SHOW, null, null, null, null, null, image, null, null, TextAlignment.CENTERED, CorrelationIdGenerator.generateId());
+
+            //Say the welcome message
+            proxy.speak(WELCOME_JARVIS_SPEAK, CorrelationIdGenerator.generateId());
+
+        } catch (SdlException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -601,7 +629,6 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnDriverDistraction(OnDriverDistraction notification) {
-         //Some RPCs (depending on region) cannot be sent when driver distraction is active.
     }
 
     @Override
