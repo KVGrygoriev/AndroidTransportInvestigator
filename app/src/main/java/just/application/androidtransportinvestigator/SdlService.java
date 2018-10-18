@@ -531,6 +531,11 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onSubscribeVehicleDataResponse(SubscribeVehicleDataResponse response) {
         Log.i(TAG, "Subscribe Vehicle Data Response notification from SDL");
+        if(response.getSuccess()){
+            Log.i(TAG, "Subscribed to vehicle data");
+            this.isVehicleDataSubscribed = true;
+
+        }
     }
 
     @Override
