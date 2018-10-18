@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.RPCRequest;
+import com.smartdevicelink.proxy.RPCResponse;
 import com.smartdevicelink.proxy.SdlProxyALM;
 import com.smartdevicelink.proxy.callbacks.OnServiceEnded;
 import com.smartdevicelink.proxy.callbacks.OnServiceNACKed;
@@ -38,6 +39,7 @@ import com.smartdevicelink.proxy.rpc.GetSystemCapabilityResponse;
 import com.smartdevicelink.proxy.rpc.GetVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.GetWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.Image;
+import com.smartdevicelink.proxy.rpc.ListFiles;
 import com.smartdevicelink.proxy.rpc.ListFilesResponse;
 import com.smartdevicelink.proxy.rpc.MenuParams;
 import com.smartdevicelink.proxy.rpc.OnAudioPassThru;
@@ -60,6 +62,7 @@ import com.smartdevicelink.proxy.rpc.OnVehicleData;
 import com.smartdevicelink.proxy.rpc.OnWayPointChange;
 import com.smartdevicelink.proxy.rpc.PerformAudioPassThruResponse;
 import com.smartdevicelink.proxy.rpc.PerformInteractionResponse;
+import com.smartdevicelink.proxy.rpc.PutFile;
 import com.smartdevicelink.proxy.rpc.PutFileResponse;
 import com.smartdevicelink.proxy.rpc.ReadDIDResponse;
 import com.smartdevicelink.proxy.rpc.ResetGlobalPropertiesResponse;
@@ -84,9 +87,11 @@ import com.smartdevicelink.proxy.rpc.UnsubscribeButtonResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeVehicleDataResponse;
 import com.smartdevicelink.proxy.rpc.UnsubscribeWayPointsResponse;
 import com.smartdevicelink.proxy.rpc.UpdateTurnListResponse;
+import com.smartdevicelink.proxy.rpc.enums.FileType;
 import com.smartdevicelink.proxy.rpc.enums.ImageType;
 import com.smartdevicelink.proxy.rpc.enums.SdlDisconnectedReason;
 import com.smartdevicelink.proxy.rpc.enums.TextAlignment;
+import com.smartdevicelink.proxy.rpc.listeners.OnRPCResponseListener;
 import com.smartdevicelink.transport.BTTransportConfig;
 import com.smartdevicelink.transport.BaseTransportConfig;
 import com.smartdevicelink.transport.MultiplexTransportConfig;
@@ -95,7 +100,12 @@ import com.smartdevicelink.transport.TransportConstants;
 import com.smartdevicelink.transport.USBTransportConfig;
 import com.smartdevicelink.util.CorrelationIdGenerator;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * A SdlService manages the lifecycle of an SDL Proxy.
@@ -112,6 +122,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private Defines.TransportType transportType = Defines.TransportType.NONE;
 
     private static final String IMAGE_FILENAME = "jarvis_icon.png";
+    private static final String ICON_FILENAME = "hello_sdl_icon.png";
 
     private static final String WELCOME_SHOW = "Welcome to HelloSDL";
     private static final String WELCOME_JARVIS_SPEAK = "Mr. Stark, we need to talk";
@@ -127,6 +138,9 @@ public class SdlService extends Service implements IProxyListenerALM {
     // variable to create and call functions of the SyncProxy
     private SdlProxyALM proxy = null;
 
+    private int iconCorrelationId;
+    private List<String> remoteFiles;
+
     private boolean firstNonHmiNone = true;
     @SuppressWarnings("unused")
     private boolean isVehicleDataSubscribed = false;
@@ -140,6 +154,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     public void onCreate() {
         Log.d(TAG, "onCreate");
         super.onCreate();
+        remoteFiles = new ArrayList<>();
 
         //Because of Android Oreo's requirements, it is mandatory that services enter the foreground for long running tasks.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -294,6 +309,68 @@ public class SdlService extends Service implements IProxyListenerALM {
             e.printStackTrace();
         }
     }
+    /**
+     * Sends the app icon through the uploadImage method with correct params
+     */
+    private void sendIcon(){
+        iconCorrelationId = CorrelationIdGenerator.generateId();
+        uploadImage(R.mipmap.ic_launcher, ICON_FILENAME, iconCorrelationId, true);
+    }
+
+    /**
+     * This method will help upload an image to the head unit
+     * @param resource the R.drawable.__ value of the image you wish to send
+     * @param imageName the filename that will be used to reference this image
+     * @param correlationId the correlation id to be used with this request. Helpful for monitoring putfileresponses
+     * @param isPersistent tell the system if the file should stay or be cleared out after connection.
+     */
+     @SuppressWarnings("SameParameterValue")
+     private void uploadImage(int resource, String imageName, int correlationId, boolean isPersistent){
+        PutFile putFile = new PutFile();
+        putFile.setFileType(FileType.GRAPHIC_PNG);
+        putFile.setSdlFileName(imageName);
+        putFile.setCorrelationID(correlationId);
+        putFile.setPersistentFile(isPersistent);
+        putFile.setSystemFile(false);
+        putFile.setBulkData(contentsOfResource(resource));
+
+        try {
+            proxy.sendRPCRequest(putFile);
+        } catch (SdlException e) {
+            e.printStackTrace();
+        }
+     }
+
+    /**
+     * Helper method to take resource files and turn them into byte arrays
+     * @param resource Resource file id.
+     * @return Resulting byte array.
+     */
+    private byte[] contentsOfResource(int resource) {
+        InputStream is = null;
+        try {
+            is = getResources().openRawResource(resource);
+            ByteArrayOutputStream os = new ByteArrayOutputStream(is.available());
+            final int bufferSize = 4096;
+            final byte[] buffer = new byte[bufferSize];
+            int available;
+            while ((available = is.read(buffer)) >= 0) {
+                os.write(buffer, 0, available);
+            }
+            return os.toByteArray();
+        } catch (IOException e) {
+            Log.w(TAG, "Can't read icon file", e);
+            return null;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
     @Override
     public void onProxyClosed(String info, Exception e, SdlDisconnectedReason reason) {
@@ -333,7 +410,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
             case HMI_NONE:
                 if(notification.getFirstRun()) {
-                    //uploadImages();
+                    uploadImages();
                 }
                 break;
 
@@ -363,6 +440,41 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     }
 
+    /**
+     *  Requests list of images to SDL, and uploads images that are missing.
+     */
+    private void uploadImages(){
+        ListFiles listFiles = new ListFiles();
+        listFiles.setOnRPCResponseListener(new OnRPCResponseListener() {
+            @Override
+            public void onResponse(int correlationId, RPCResponse response) {
+                if(response.getSuccess()){
+                    remoteFiles = ((ListFilesResponse) response).getFilenames();
+                }
+
+                // Check the mutable set for the AppIcon
+                // If not present, upload the image
+                if(remoteFiles== null || !remoteFiles.contains(SdlService.ICON_FILENAME)){
+                    sendIcon();
+                }else{
+                    // If the file is already present, send the SetAppIcon request
+                    try {
+                        proxy.setappicon(ICON_FILENAME, CorrelationIdGenerator.generateId());
+                    } catch (SdlException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // Check the mutable set for the SDL image
+                // If not present, upload the image
+                if(remoteFiles== null || !remoteFiles.contains(SdlService.IMAGE_FILENAME)){
+                    uploadImage(R.drawable.jarvis_icon, IMAGE_FILENAME, CorrelationIdGenerator.generateId(), true);
+                }
+            }
+        });
+        this.sendRpcRequest(listFiles);
+    }
+
     @Override
     public void onListFilesResponse(ListFilesResponse response) {
         Log.i(TAG, "onListFilesResponse from SDL ");
@@ -371,6 +483,13 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onPutFileResponse(PutFileResponse response) {
         Log.i(TAG, "onPutFileResponse from SDL");
+        if(response.getCorrelationID() == iconCorrelationId){ //If we have successfully uploaded our icon, we want to set it
+            try {
+                proxy.setappicon(ICON_FILENAME, CorrelationIdGenerator.generateId());
+            } catch (SdlException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
