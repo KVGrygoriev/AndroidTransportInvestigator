@@ -260,6 +260,18 @@ public class SdlService extends Service implements IProxyListenerALM {
     }
 
     /**
+     * Will show a sample test message on screen as well as speak a sample test message
+     */
+    private void showTest(){
+        try {
+            proxy.show(TEST_COMMAND_NAME, "Command has been selected", TextAlignment.CENTERED, CorrelationIdGenerator.generateId());
+            proxy.speak(TEST_COMMAND_NAME, CorrelationIdGenerator.generateId());
+        } catch (SdlException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      *  Add commands for the app on SDL.
      */
     private void sendCommands() {
@@ -368,7 +380,14 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnCommand(OnCommand notification){
-        //TODO
+        Integer id = notification.getCmdID();
+        if(id != null){
+            switch(id){
+                case TEST_COMMAND_ID:
+                    showTest();
+                    break;
+            }
+        }
     }
 
     /**
