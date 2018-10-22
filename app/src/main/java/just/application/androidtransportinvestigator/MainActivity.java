@@ -15,16 +15,21 @@ import com.smartdevicelink.transport.MultiplexTransportConfig;
 import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
+import static just.application.androidtransportinvestigator.Defines.btSecurityLvlKey;
+import static just.application.androidtransportinvestigator.Defines.btTypeKey;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
     private static final int TCP_POPUP_ACTIVITY_REQUEST_CODE = 0;
+    private static final int BT_POPUP_ACTIVITY_REQUEST_CODE = 1;
 
     private Defines.TransportType transportType = Defines.TransportType.TCP;
     private int bluetoothSecurityLevel = MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF;
+    private Defines.TransportType btType = MBT;
     private String userIp = "127.0.0.1"; //172.31.239.143
+
 
     RadioGroup transportRadioGroup;
     RadioButton btnBt, btnUsb, btnTcp;
@@ -56,6 +61,11 @@ public class MainActivity extends AppCompatActivity {
                 userIp = data.getStringExtra("UserIp");
                 break;
 
+            case BT_POPUP_ACTIVITY_REQUEST_CODE:
+                btType = Defines.TransportType.values()[data.getIntExtra("BtType", MBT.ordinal())];
+                bluetoothSecurityLevel = data.getIntExtra("BtSecurityLevel", MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
+                break;
+
             default:
                 Logger.Debug(logger, TAG,"onActivityResult: Unrecognized request code");
 
@@ -76,14 +86,31 @@ public class MainActivity extends AppCompatActivity {
         logger.setMovementMethod(new ScrollingMovementMethod());
     }
 
+    private String BtSecurityLevelToString(int securityLevel) {
+        switch (securityLevel) {
+            case MultiplexTransportConfig.FLAG_MULTI_SECURITY_LOW:
+                return "FLAG_MULTI_SECURITY_LOW";
+
+            case MultiplexTransportConfig.FLAG_MULTI_SECURITY_MED:
+                return "FLAG_MULTI_SECURITY_MED";
+
+            case MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH:
+                return "FLAG_MULTI_SECURITY_HIGH";
+
+            default:
+                break;
+        }
+
+        return "FLAG_MULTI_SECURITY_OFF";
+    }
+
     private void registerListener() {
         btnBt.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                /**
-                 * Multiplex bluetooth by default
-                 */
-                transportType = MBT;
-                Logger.Debug(logger, TAG, ((Button)v).getText() + " transport selected");
+                Logger.Debug(logger, TAG, ((Button)v).getText() + "(" + btType.name()
+                        + ") transport selected; "
+                        + BtSecurityLevelToString(bluetoothSecurityLevel)
+                        + " security level");
             }
         });
 
@@ -137,9 +164,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 switch (transportRadioGroup.getCheckedRadioButtonId()) {
                     case R.id.rdBtnBt:
-                        break;
+                        Intent btSettingsIntent = new Intent(view.getContext(), BtPopupActivity.class);
+                        btSettingsIntent.putExtra(btTypeKey, btType);
+                        btSettingsIntent.putExtra(btSecurityLvlKey, bluetoothSecurityLevel);
 
-                    case R.id.rdBtnUsb:
+                        startActivityForResult(btSettingsIntent, BT_POPUP_ACTIVITY_REQUEST_CODE);
                         break;
 
                     case R.id.rdBtnTcp:
@@ -149,11 +178,6 @@ public class MainActivity extends AppCompatActivity {
                         startActivityForResult(tcpSettingsIntent, TCP_POPUP_ACTIVITY_REQUEST_CODE);
                         break;
                 }
-
-                //}
-                // TODO handler
-                // TODO bluetoothSecurityLevel
-                // TODO MBT or LBT
             }
         });
     }

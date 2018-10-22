@@ -23,9 +23,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".TcpPopupActivity"
-            android:theme="@style/AppTheme.CustomTheme">
-        </activity>
         <activity
             android:name="com.smartdevicelink.transport.USBAccessoryAttachmentActivity"
             android:launchMode="singleTop">
@@ -65,6 +62,13 @@
                 <action android:name="sdl.router.startservice" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name=".TcpPopupActivity"
+            android:theme="@style/AppTheme.CustomTheme"></activity>
+        <activity
+            android:name=".BtPopupActivity"
+            android:theme="@style/AppTheme.CustomTheme"></activity>
     </application>
 
 </manifest>

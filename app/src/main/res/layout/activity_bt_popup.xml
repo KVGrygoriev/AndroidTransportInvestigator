@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorGray"
+    tools:context=".BtPopupActivity">
+
+
+    <TextView
+        android:id="@+id/lblBtType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/colorBlack"
+        android:textSize="20dp"
+        android:text="Bluetooth type:"/>
+
+    <RadioGroup
+        android:id="@+id/rdBtnGrpBtType"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/lblBtType"
+        >
+
+        <RadioButton
+            android:id="@+id/rdBtnMBT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="Multiplex BT" />
+
+        <RadioButton
+            android:id="@+id/rdBtnLBT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="Legacy BT" />
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/lblBtSecurityLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:textColor="@color/colorBlack"
+        android:text="Security level:"
+        android:textSize="20dp"
+        android:layout_below="@+id/rdBtnGrpBtType"
+        android:layout_marginTop="10dp"/>
+
+    <RadioGroup
+        android:id="@+id/rdBtnGrpBtSecurityLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/lblBtSecurityLevel" >
+
+        <RadioButton
+            android:id="@+id/rdBtnSecLvlHigh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="High" />
+
+        <RadioButton
+            android:id="@+id/rdBtnSecLvlMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="Medium" />
+
+        <RadioButton
+            android:id="@+id/rdBtnSecLvlLow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="Low" />
+
+        <RadioButton
+            android:id="@+id/rdBtnSecLvlOff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20dp"
+            android:text="Off" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/rdBtnGrpManage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@+id/rdBtnGrpBtSecurityLevel"
+        android:layout_marginTop="10dp">
+
+        <Button
+            android:id="@+id/btnAcceptBtSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Accept" />
+
+        <Button
+            android:id="@+id/btnCancelBtSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Cancel" />
+    </RadioGroup>
+
+</RelativeLayout>

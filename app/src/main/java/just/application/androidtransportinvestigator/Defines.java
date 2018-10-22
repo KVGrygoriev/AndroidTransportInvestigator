@@ -8,4 +8,7 @@ class Defines {
         USB,
         TCP
     };
+
+    static String btTypeKey = "BtType";
+    static String btSecurityLvlKey = "BtSecurityLevel";
 }
