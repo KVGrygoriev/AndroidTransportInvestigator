@@ -11,4 +11,6 @@ class Defines {
 
     static String btTypeKey = "BtType";
     static String btSecurityLvlKey = "BtSecurityLevel";
+
+    static String tcpIpKey = "UserIp";
 }

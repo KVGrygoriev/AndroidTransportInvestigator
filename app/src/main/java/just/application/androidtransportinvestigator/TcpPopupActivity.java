@@ -8,9 +8,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-class TcpPopupActivity extends Activity {
+import static just.application.androidtransportinvestigator.Defines.tcpIpKey;
 
-    private static String ipEditorKey = "UserIp";
+class TcpPopupActivity extends Activity {
 
     Button btnAccept, btnCancel;
     EditText ipEditor;
@@ -27,7 +27,7 @@ class TcpPopupActivity extends Activity {
 
         registerListener();
 
-        ipEditor.setText(getIntent().getStringExtra(ipEditorKey));
+        ipEditor.setText(getIntent().getStringExtra(tcpIpKey));
     }
 
     private void InitWindowSize() {
@@ -52,7 +52,7 @@ class TcpPopupActivity extends Activity {
         btnAccept.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.putExtra(ipEditorKey, ipEditor.getText().toString());
+                intent.putExtra(tcpIpKey, ipEditor.getText().toString());
                 setResult(RESULT_OK, intent);
                 finish();
             }

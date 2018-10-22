@@ -17,6 +17,7 @@ import static just.application.androidtransportinvestigator.Defines.TransportTyp
 import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
 import static just.application.androidtransportinvestigator.Defines.btSecurityLvlKey;
 import static just.application.androidtransportinvestigator.Defines.btTypeKey;
+import static just.application.androidtransportinvestigator.Defines.tcpIpKey;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode) {
             case TCP_POPUP_ACTIVITY_REQUEST_CODE:
-                userIp = data.getStringExtra("UserIp");
+                userIp = data.getStringExtra(tcpIpKey);
                 break;
 
             case BT_POPUP_ACTIVITY_REQUEST_CODE:
@@ -173,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
                     case R.id.rdBtnTcp:
                         Intent tcpSettingsIntent = new Intent(view.getContext(), TcpPopupActivity.class);
-                        tcpSettingsIntent.putExtra("UserIp", userIp);
+                        tcpSettingsIntent.putExtra(tcpIpKey, userIp);
 
                         startActivityForResult(tcpSettingsIntent, TCP_POPUP_ACTIVITY_REQUEST_CODE);
                         break;
