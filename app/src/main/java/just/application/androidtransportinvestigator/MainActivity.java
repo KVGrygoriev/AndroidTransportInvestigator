@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case BT_POPUP_ACTIVITY_REQUEST_CODE:
-                btType = Defines.TransportType.values()[data.getIntExtra("BtType", MBT.ordinal())];
-                bluetoothSecurityLevel = data.getIntExtra("BtSecurityLevel", MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
+                btType = (Defines.TransportType)data.getSerializableExtra(btTypeKey);
+                bluetoothSecurityLevel = data.getIntExtra(Defines.btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
                 break;
 
             default:
