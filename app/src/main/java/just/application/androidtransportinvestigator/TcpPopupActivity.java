@@ -1,8 +1,8 @@
 package just.application.androidtransportinvestigator;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
@@ -10,7 +10,7 @@ import android.widget.EditText;
 
 import static just.application.androidtransportinvestigator.Defines.tcpIpKey;
 
-class TcpPopupActivity extends Activity {
+public class TcpPopupActivity extends AppCompatActivity {
 
     Button btnAccept, btnCancel;
     EditText ipEditor;
@@ -18,8 +18,8 @@ class TcpPopupActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.tcp_popup);
+        setTitle("TCP settings");
 
         InitWindowSize();
 
@@ -38,7 +38,7 @@ class TcpPopupActivity extends Activity {
         int width = dm.widthPixels;
         int height = dm.heightPixels;
 
-        getWindow().setLayout((int)(width *.9), (int)(height *.3));
+        getWindow().setLayout((int)(width *.9), (int)(height *.22));
     }
 
     private void InitWidgets() {
