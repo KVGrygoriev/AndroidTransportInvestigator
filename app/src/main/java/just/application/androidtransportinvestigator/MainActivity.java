@@ -130,6 +130,14 @@ public class MainActivity extends AppCompatActivity {
 
         btnAcceptTransport.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+
+                btnAcceptTransport.setEnabled(false);
+                btnAdjustTransport.setEnabled(false);
+
+                for (int i = 0 ; i < transportRadioGroup.getChildCount(); ++i) {
+                    ((RadioButton)transportRadioGroup.getChildAt(i)).setEnabled(false);
+                }
+
                 /**
                  * Setting needed fields and creating proxy
                  */
@@ -176,6 +184,22 @@ public class MainActivity extends AppCompatActivity {
                         tcpSettingsIntent.putExtra(tcpIpKey, userIp);
 
                         startActivityForResult(tcpSettingsIntent, TCP_POPUP_ACTIVITY_REQUEST_CODE);
+                        break;
+                }
+            }
+        });
+
+        transportRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
+
+                switch (checkedId) {
+                    case R.id.rdBtnUsb:
+                        btnAdjustTransport.setEnabled(false);
+                        break;
+
+                    default:
+                        btnAdjustTransport.setEnabled(true);
                         break;
                 }
             }
