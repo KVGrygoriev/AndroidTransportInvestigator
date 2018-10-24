@@ -65,10 +65,11 @@
 
         <activity
             android:name=".TcpPopupActivity"
-            android:theme="@style/AppTheme.CustomTheme"></activity>
+            android:theme="@style/AppTheme.CustomTheme" />
         <activity
             android:name=".BtPopupActivity"
-            android:theme="@style/AppTheme.CustomTheme"></activity>
+            android:theme="@style/AppTheme.CustomTheme" />
+        <activity android:name=".LockScreenActivity"></activity>
     </application>
 
 </manifest>
