@@ -54,6 +54,7 @@ import com.smartdevicelink.proxy.rpc.OnKeyboardInput;
 import com.smartdevicelink.proxy.rpc.OnLanguageChange;
 import com.smartdevicelink.proxy.rpc.OnLockScreenStatus;
 import com.smartdevicelink.proxy.rpc.OnPermissionsChange;
+import com.smartdevicelink.proxy.rpc.OnRCStatus;
 import com.smartdevicelink.proxy.rpc.OnStreamRPC;
 import com.smartdevicelink.proxy.rpc.OnSystemRequest;
 import com.smartdevicelink.proxy.rpc.OnTBTClientState;
@@ -124,7 +125,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     private static final String IMAGE_FILENAME = "jarvis_icon.png";
     private static final String ICON_FILENAME = "hello_sdl_icon.png";
 
-    private static final String WELCOME_SHOW = "Welcome to HelloSDL";
+    private static final String WELCOME_SHOW = "Welcome to Transport Investigator";
     private static final String WELCOME_JARVIS_SPEAK = "Mr. Stark, we need to talk";
 
     private static final String TEST_COMMAND_NAME = "Test Command";
@@ -494,7 +495,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnLockScreenNotification(OnLockScreenStatus notification) {
-        //TODO
+        Log.i(TAG, "OnLockScreen notification from SDL: " + notification);
     }
 
     @Override
@@ -518,7 +519,9 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     }
 
-    /*  Vehicle Data   */
+    /**
+    * Vehicle Data
+    */
     @Override
     public void onOnPermissionsChange(OnPermissionsChange notification) {
         Log.i(TAG, "Permision changed: " + notification);
@@ -841,5 +844,10 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnInteriorVehicleData(OnInteriorVehicleData notification) {
         Log.i(TAG, "OnInteriorVehicleData from SDL: " + notification);
+    }
+
+    @Override
+    public void onOnRCStatus(OnRCStatus status) {
+        Log.i(TAG, "onOnRCStatus from SDL: " + status);
     }
 }
