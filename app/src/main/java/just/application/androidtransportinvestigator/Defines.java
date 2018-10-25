@@ -24,4 +24,15 @@ class Defines {
             }
         }
     };
+
+    /**
+     * Used for determinate broadcast logger message level
+     */
+    enum LogLevel {
+        VERBOSE,
+        DEBUG,
+        INFO,
+        WARNING,
+        ERROR
+    }
 }

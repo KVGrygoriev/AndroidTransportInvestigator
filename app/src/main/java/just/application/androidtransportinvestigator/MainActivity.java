@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
@@ -15,6 +16,7 @@ import android.widget.TextView;
 
 import com.smartdevicelink.transport.MultiplexTransportConfig;
 
+import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_LVL;
 import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
@@ -95,7 +97,31 @@ public class MainActivity extends AppCompatActivity {
         loggerBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Logger.Info(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                switch ((Defines.LogLevel)intent.getSerializableExtra(LOGGER_LVL)) {
+                    case INFO:
+                        Logger.Info(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        break;
+
+                    case DEBUG:
+                        Logger.Debug(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        break;
+
+                    case ERROR:
+                        Logger.Error(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        break;
+
+                    case VERBOSE:
+                        Logger.Verbose(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        break;
+
+                    case WARNING:
+                        Logger.Warning(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        break;
+
+                    default:
+                        Log.w(TAG, "Undetermined log level type");
+                        break;
+                }
             }
         };
 
