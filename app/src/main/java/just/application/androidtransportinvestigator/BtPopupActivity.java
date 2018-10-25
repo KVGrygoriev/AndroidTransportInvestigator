@@ -14,8 +14,8 @@ import com.smartdevicelink.transport.MultiplexTransportConfig;
 
 import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
-import static just.application.androidtransportinvestigator.Defines.btSecurityLvlKey;
-import static just.application.androidtransportinvestigator.Defines.btTypeKey;
+import static just.application.androidtransportinvestigator.Defines.BT_SECURITY_LVL_KEY;
+import static just.application.androidtransportinvestigator.Defines.BT_TYPE_KEY;
 
 public class BtPopupActivity extends AppCompatActivity {
 
@@ -51,7 +51,7 @@ public class BtPopupActivity extends AppCompatActivity {
 
     private void ApplyWidgetSettings() {
 
-        switch ((Defines.TransportType)getIntent().getSerializableExtra(btTypeKey)) {
+        switch ((Defines.TransportType)getIntent().getSerializableExtra(BT_TYPE_KEY)) {
             case MBT:
                 rdBtnMBT.setChecked(true);
                 EnableGroupButtonBtSecurityLevel(false);
@@ -66,7 +66,7 @@ public class BtPopupActivity extends AppCompatActivity {
                 break;
         }
 
-        switch (getIntent().getIntExtra(btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF)) {
+        switch (getIntent().getIntExtra(BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF)) {
             case MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF:
                 rdBtnSecLvlOff.setChecked(true);
                 break;
@@ -111,11 +111,11 @@ public class BtPopupActivity extends AppCompatActivity {
 
                 switch (rdBtnGrpBtType.getCheckedRadioButtonId()) {
                     case R.id.rdBtnMBT:
-                        intent.putExtra(btTypeKey, MBT);
+                        intent.putExtra(BT_TYPE_KEY, MBT);
                         break;
 
                     case R.id.rdBtnLBT:
-                        intent.putExtra(btTypeKey, LBT);
+                        intent.putExtra(BT_TYPE_KEY, LBT);
                         break;
 
                     default:
@@ -125,19 +125,19 @@ public class BtPopupActivity extends AppCompatActivity {
 
                 switch (rdBtnGrpBtSecurityLevel.getCheckedRadioButtonId()) {
                     case R.id.rdBtnSecLvlHigh:
-                        intent.putExtra(btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH);
+                        intent.putExtra(BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_HIGH);
                         break;
 
                     case R.id.rdBtnSecLvlMedium:
-                        intent.putExtra(btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_MED);
+                        intent.putExtra(BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_MED);
                         break;
 
                     case R.id.rdBtnSecLvlLow:
-                        intent.putExtra(btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_LOW);
+                        intent.putExtra(BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_LOW);
                         break;
 
                     case R.id.rdBtnSecLvlOff:
-                        intent.putExtra(btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
+                        intent.putExtra(BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
                         break;
 
                     default:

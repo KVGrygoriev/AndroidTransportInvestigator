@@ -15,9 +15,9 @@ import com.smartdevicelink.transport.MultiplexTransportConfig;
 import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
-import static just.application.androidtransportinvestigator.Defines.btSecurityLvlKey;
-import static just.application.androidtransportinvestigator.Defines.btTypeKey;
-import static just.application.androidtransportinvestigator.Defines.tcpIpKey;
+import static just.application.androidtransportinvestigator.Defines.BT_SECURITY_LVL_KEY;
+import static just.application.androidtransportinvestigator.Defines.BT_TYPE_KEY;
+import static just.application.androidtransportinvestigator.Defines.TCP_IP_KEY;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,12 +58,12 @@ public class MainActivity extends AppCompatActivity {
 
         switch (requestCode) {
             case TCP_POPUP_ACTIVITY_REQUEST_CODE:
-                userIp = data.getStringExtra(tcpIpKey);
+                userIp = data.getStringExtra(TCP_IP_KEY);
                 break;
 
             case BT_POPUP_ACTIVITY_REQUEST_CODE:
-                btType = (Defines.TransportType)data.getSerializableExtra(btTypeKey);
-                bluetoothSecurityLevel = data.getIntExtra(Defines.btSecurityLvlKey, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
+                btType = (Defines.TransportType)data.getSerializableExtra(BT_TYPE_KEY);
+                bluetoothSecurityLevel = data.getIntExtra(Defines.BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
                 break;
 
             default:
@@ -173,15 +173,15 @@ public class MainActivity extends AppCompatActivity {
                 switch (transportRadioGroup.getCheckedRadioButtonId()) {
                     case R.id.rdBtnBt:
                         Intent btSettingsIntent = new Intent(view.getContext(), BtPopupActivity.class);
-                        btSettingsIntent.putExtra(btTypeKey, btType);
-                        btSettingsIntent.putExtra(btSecurityLvlKey, bluetoothSecurityLevel);
+                        btSettingsIntent.putExtra(BT_TYPE_KEY, btType);
+                        btSettingsIntent.putExtra(BT_SECURITY_LVL_KEY, bluetoothSecurityLevel);
 
                         startActivityForResult(btSettingsIntent, BT_POPUP_ACTIVITY_REQUEST_CODE);
                         break;
 
                     case R.id.rdBtnTcp:
                         Intent tcpSettingsIntent = new Intent(view.getContext(), TcpPopupActivity.class);
-                        tcpSettingsIntent.putExtra(tcpIpKey, userIp);
+                        tcpSettingsIntent.putExtra(TCP_IP_KEY, userIp);
 
                         startActivityForResult(tcpSettingsIntent, TCP_POPUP_ACTIVITY_REQUEST_CODE);
                         break;

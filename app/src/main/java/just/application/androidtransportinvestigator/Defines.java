@@ -9,8 +9,8 @@ class Defines {
         TCP
     };
 
-    static String btTypeKey = "BtType";
-    static String btSecurityLvlKey = "BtSecurityLevel";
+    public final static String BT_TYPE_KEY = "BtType";
+    public final static String BT_SECURITY_LVL_KEY = "BtSecurityLevel";
 
-    static String tcpIpKey = "UserIp";
+    public final static String TCP_IP_KEY = "UserIp";
 }
