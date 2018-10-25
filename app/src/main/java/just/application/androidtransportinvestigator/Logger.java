@@ -3,7 +3,7 @@ package just.application.androidtransportinvestigator;
 import android.util.Log;
 import android.widget.TextView;
 
-public final class Logger {
+final class Logger {
 
     private static void logToTextView(TextView view, String tag, String msg) {
         view.setText("[" + tag + "] " + msg + "\n" + view.getText());

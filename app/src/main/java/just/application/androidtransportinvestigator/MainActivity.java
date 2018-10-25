@@ -1,6 +1,9 @@
 package just.application.androidtransportinvestigator;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -18,6 +21,8 @@ import static just.application.androidtransportinvestigator.Defines.TransportTyp
 import static just.application.androidtransportinvestigator.Defines.BT_SECURITY_LVL_KEY;
 import static just.application.androidtransportinvestigator.Defines.BT_TYPE_KEY;
 import static just.application.androidtransportinvestigator.Defines.TCP_IP_KEY;
+import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_MSG;
+import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_TAG;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private Defines.TransportType btType = MBT;
     private String userIp = "127.0.0.1"; //172.31.239.143
 
+    BroadcastReceiver loggerBroadcastReceiver;
 
     RadioGroup transportRadioGroup;
     RadioButton btnBt, btnUsb, btnTcp;
@@ -45,6 +51,15 @@ public class MainActivity extends AppCompatActivity {
         InitWidgets();
 
         registerListener();
+
+        InitLoggerBrodcastReceiver();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        unregisterReceiver(loggerBroadcastReceiver);
     }
 
     @Override
@@ -70,6 +85,22 @@ public class MainActivity extends AppCompatActivity {
                 Logger.Debug(logger, TAG,"onActivityResult: Unrecognized request code");
 
         }
+    }
+
+    /*
+    * loggerBroadcastReceiver uses for log messages delivery from services/activity.
+    * And further output them to the log widget.
+    */
+    private void InitLoggerBrodcastReceiver() {
+        loggerBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Logger.Info(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter(Defines.BroadcastLoggerId.MAIN_ACTIVITY.toString());
+        registerReceiver(loggerBroadcastReceiver, intentFilter);
     }
 
     private void InitWidgets() {
