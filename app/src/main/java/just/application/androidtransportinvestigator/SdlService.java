@@ -8,7 +8,6 @@ import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.smartdevicelink.exception.SdlException;
 import com.smartdevicelink.proxy.RPCRequest;
@@ -146,6 +145,8 @@ public class SdlService extends Service implements IProxyListenerALM {
     @SuppressWarnings("unused")
     private boolean isVehicleDataSubscribed = false;
 
+    BroadcastLogger broadcastLogger;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -153,9 +154,10 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate");
+
         super.onCreate();
         remoteFiles = new ArrayList<>();
+        broadcastLogger = new BroadcastLogger(this, Defines.BroadcastLoggerId.MAIN_ACTIVITY.toString());
 
         //Because of Android Oreo's requirements, it is mandatory that services enter the foreground for long running tasks.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -200,27 +202,27 @@ public class SdlService extends Service implements IProxyListenerALM {
                             String userIp,
                             int bluetoothSecurityLevel) {
 
-        Log.i(TAG, "Trying to start proxy. TransportType is " + transportType);
+        broadcastLogger.Info(TAG, "Trying to start proxy. TransportType is " + transportType);
 
         boolean forceConnect = intent != null && intent.getBooleanExtra(TransportConstants.FORCE_TRANSPORT_CONNECTED, false);
 
         if (null == proxy) {
             try {
-                Log.i(TAG, "Starting SDL Proxy");
+                broadcastLogger.Info(TAG, "Starting SDL Proxy");
                 BaseTransportConfig transport = null;
 
                 switch (transportType) {
                     case USB:
                         if (intent != null && intent.hasExtra(UsbManager.EXTRA_ACCESSORY)) { //If we want to support USB transport
                             if (android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.HONEYCOMB) {
-                                Log.e(TAG, "Unable to start proxy. Android OS version is too low");
+                                broadcastLogger.Error(TAG, "Unable to start proxy. Android OS version is too low");
                                 return;
                             } else {
                                 transport = new USBTransportConfig(getBaseContext(), (UsbAccessory) intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY));
-                                Log.d(TAG, "USB created.");
+                                broadcastLogger.Debug(TAG, "USB created.");
                             }
                         } else {
-                            Log.e(TAG, "Unable to start proxy. " + (intent != null ? "USB doesn't have EXTRA_ACCESSORY." : "Intent is null."));
+                            broadcastLogger.Error(TAG, "Unable to start proxy. " + (intent != null ? "USB doesn't have EXTRA_ACCESSORY." : "Intent is null."));
                         }
                         break;
 
@@ -243,7 +245,7 @@ public class SdlService extends Service implements IProxyListenerALM {
                 if (transport != null) {
                     proxy = new SdlProxyALM(this, APP_NAME, true, APP_ID, transport);
                 } else {
-                    Log.e(TAG, "Proxy was not created. Input params: transportType = " + transportType +
+                    broadcastLogger.Error(TAG, "Proxy was not created. Input params: transportType = " + transportType +
                             "; bluetoothSecurityLevel = " + bluetoothSecurityLevel);
                 }
 
@@ -360,7 +362,8 @@ public class SdlService extends Service implements IProxyListenerALM {
             }
             return os.toByteArray();
         } catch (IOException e) {
-            Log.w(TAG, "Can't read icon file", e);
+            e.printStackTrace();
+            broadcastLogger.Warning(TAG, "Can't read icon file");
             return null;
         } finally {
             if (is != null) {
@@ -386,7 +389,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onOnHMIStatus(OnHMIStatus notification) {
 
-        Log.i(TAG, "HMI state " + notification.getHmiLevel().name());
+        broadcastLogger.Info(TAG, "HMI state " + notification.getHmiLevel().name());
 
         switch (notification.getHmiLevel()) {
             case HMI_FULL:
@@ -478,12 +481,12 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onListFilesResponse(ListFilesResponse response) {
-        Log.i(TAG, "onListFilesResponse from SDL ");
+        broadcastLogger.Info(TAG, "onListFilesResponse from SDL ");
     }
 
     @Override
     public void onPutFileResponse(PutFileResponse response) {
-        Log.i(TAG, "onPutFileResponse from SDL");
+        broadcastLogger.Info(TAG, "onPutFileResponse from SDL");
         if(response.getCorrelationID() == iconCorrelationId){ //If we have successfully uploaded our icon, we want to set it
             try {
                 proxy.setappicon(ICON_FILENAME, CorrelationIdGenerator.generateId());
@@ -495,7 +498,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnLockScreenNotification(OnLockScreenStatus notification) {
-        Log.i(TAG, "OnLockScreen notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnLockScreen notification from SDL: " + notification);
     }
 
     @Override
@@ -515,7 +518,7 @@ public class SdlService extends Service implements IProxyListenerALM {
      */
     @Override
     public void onAddCommandResponse(AddCommandResponse response) {
-        Log.i(TAG, "AddCommand response from SDL: " + response.getResultCode().name());
+        broadcastLogger.Info(TAG, "AddCommand response from SDL: " + response.getResultCode().name());
 
     }
 
@@ -524,7 +527,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     */
     @Override
     public void onOnPermissionsChange(OnPermissionsChange notification) {
-        Log.i(TAG, "Permision changed: " + notification);
+        broadcastLogger.Info(TAG, "Permision changed: " + notification);
     }
 
     /**
@@ -533,9 +536,9 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onSubscribeVehicleDataResponse(SubscribeVehicleDataResponse response) {
-        Log.i(TAG, "Subscribe Vehicle Data Response notification from SDL");
+        broadcastLogger.Info(TAG, "Subscribe Vehicle Data Response notification from SDL");
         if(response.getSuccess()){
-            Log.i(TAG, "Subscribed to vehicle data");
+            broadcastLogger.Info(TAG, "Subscribed to vehicle data");
             this.isVehicleDataSubscribed = true;
 
         }
@@ -543,214 +546,214 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onOnVehicleData(OnVehicleData notification) {
-        Log.i(TAG, "Vehicle data notification from SDL");
+        broadcastLogger.Info(TAG, "Vehicle data notification from SDL");
     }
 
     @Override
     public void onAddSubMenuResponse(AddSubMenuResponse response) {
-        Log.i(TAG, "AddSubMenu response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "AddSubMenu response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onCreateInteractionChoiceSetResponse(CreateInteractionChoiceSetResponse response) {
-        Log.i(TAG, "CreateInteractionChoiceSet response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "CreateInteractionChoiceSet response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onAlertResponse(AlertResponse response) {
-        Log.i(TAG, "Alert response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "Alert response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onDeleteCommandResponse(DeleteCommandResponse response) {
-        Log.i(TAG, "DeleteCommand response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DeleteCommand response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onDeleteInteractionChoiceSetResponse(DeleteInteractionChoiceSetResponse response) {
-        Log.i(TAG, "DeleteInteractionChoiceSet response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DeleteInteractionChoiceSet response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onDeleteSubMenuResponse(DeleteSubMenuResponse response) {
-        Log.i(TAG, "DeleteSubMenu response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DeleteSubMenu response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onPerformInteractionResponse(PerformInteractionResponse response) {
-        Log.i(TAG, "PerformInteraction response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "PerformInteraction response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onResetGlobalPropertiesResponse(
             ResetGlobalPropertiesResponse response) {
-        Log.i(TAG, "ResetGlobalProperties response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ResetGlobalProperties response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSetGlobalPropertiesResponse(SetGlobalPropertiesResponse response) {
-        Log.i(TAG, "SetGlobalProperties response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SetGlobalProperties response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSetMediaClockTimerResponse(SetMediaClockTimerResponse response) {
-        Log.i(TAG, "SetMediaClockTimer response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SetMediaClockTimer response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onShowResponse(ShowResponse response) {
-        Log.i(TAG, "Show response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "Show response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSpeakResponse(SpeakResponse response) {
-        Log.i(TAG, "SpeakCommand response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SpeakCommand response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnButtonEvent(OnButtonEvent notification) {
-        Log.i(TAG, "OnButtonEvent notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnButtonEvent notification from SDL: " + notification);
     }
 
     @Override
     public void onOnButtonPress(OnButtonPress notification) {
-        Log.i(TAG, "OnButtonPress notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnButtonPress notification from SDL: " + notification);
     }
 
     @Override
     public void onSubscribeButtonResponse(SubscribeButtonResponse response) {
-        Log.i(TAG, "SubscribeButton response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SubscribeButton response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onUnsubscribeButtonResponse(UnsubscribeButtonResponse response) {
-        Log.i(TAG, "UnsubscribeButton response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "UnsubscribeButton response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnTBTClientState(OnTBTClientState notification) {
-        Log.i(TAG, "OnTBTClientState notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnTBTClientState notification from SDL: " + notification);
     }
 
     @Override
     public void onUnsubscribeVehicleDataResponse(
             UnsubscribeVehicleDataResponse response) {
-        Log.i(TAG, "UnsubscribeVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "UnsubscribeVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onGetVehicleDataResponse(GetVehicleDataResponse response) {
-        Log.i(TAG, "GetVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "GetVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onReadDIDResponse(ReadDIDResponse response) {
-        Log.i(TAG, "ReadDID response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ReadDID response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onGetDTCsResponse(GetDTCsResponse response) {
-        Log.i(TAG, "GetDTCs response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "GetDTCs response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onPerformAudioPassThruResponse(PerformAudioPassThruResponse response) {
-        Log.i(TAG, "PerformAudioPassThru response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "PerformAudioPassThru response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onEndAudioPassThruResponse(EndAudioPassThruResponse response) {
-        Log.i(TAG, "EndAudioPassThru response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "EndAudioPassThru response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnAudioPassThru(OnAudioPassThru notification) {
-        Log.i(TAG, "OnAudioPassThru notification from SDL: " + notification );
+        broadcastLogger.Info(TAG, "OnAudioPassThru notification from SDL: " + notification );
     }
 
     @Override
     public void onDeleteFileResponse(DeleteFileResponse response) {
-        Log.i(TAG, "DeleteFile response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DeleteFile response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSetAppIconResponse(SetAppIconResponse response) {
-        Log.i(TAG, "SetAppIcon response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SetAppIcon response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onScrollableMessageResponse(ScrollableMessageResponse response) {
-        Log.i(TAG, "ScrollableMessage response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ScrollableMessage response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onChangeRegistrationResponse(ChangeRegistrationResponse response) {
-        Log.i(TAG, "ChangeRegistration response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ChangeRegistration response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSetDisplayLayoutResponse(SetDisplayLayoutResponse response) {
-        Log.i(TAG, "SetDisplayLayout response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SetDisplayLayout response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnLanguageChange(OnLanguageChange notification) {
-        Log.i(TAG, "OnLanguageChange notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnLanguageChange notification from SDL: " + notification);
     }
 
     @Override
     public void onSliderResponse(SliderResponse response) {
-        Log.i(TAG, "Slider response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "Slider response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnHashChange(OnHashChange notification) {
-        Log.i(TAG, "OnHashChange notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnHashChange notification from SDL: " + notification);
     }
 
     @Override
     public void onOnSystemRequest(OnSystemRequest notification) {
-        Log.i(TAG, "OnSystemRequest notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnSystemRequest notification from SDL: " + notification);
     }
 
     @Override
     public void onSystemRequestResponse(SystemRequestResponse response) {
-        Log.i(TAG, "SystemRequest response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SystemRequest response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnKeyboardInput(OnKeyboardInput notification) {
-        Log.i(TAG, "OnKeyboardInput notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnKeyboardInput notification from SDL: " + notification);
     }
 
     @Override
     public void onOnTouchEvent(OnTouchEvent notification) {
-        Log.i(TAG, "OnTouchEvent notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnTouchEvent notification from SDL: " + notification);
     }
 
     @Override
     public void onDiagnosticMessageResponse(DiagnosticMessageResponse response) {
-        Log.i(TAG, "DiagnosticMessage response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DiagnosticMessage response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnStreamRPC(OnStreamRPC notification) {
-        Log.i(TAG, "OnStreamRPC notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnStreamRPC notification from SDL: " + notification);
     }
 
     @Override
     public void onStreamRPCResponse(StreamRPCResponse response) {
-        Log.i(TAG, "StreamRPC response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "StreamRPC response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onDialNumberResponse(DialNumberResponse response) {
-        Log.i(TAG, "DialNumber response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "DialNumber response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSendLocationResponse(SendLocationResponse response) {
-        Log.i(TAG, "SendLocation response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SendLocation response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
@@ -765,17 +768,17 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onShowConstantTbtResponse(ShowConstantTbtResponse response) {
-        Log.i(TAG, "ShowConstantTbt response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ShowConstantTbt response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onAlertManeuverResponse(AlertManeuverResponse response) {
-        Log.i(TAG, "AlertManeuver response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "AlertManeuver response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onUpdateTurnListResponse(UpdateTurnListResponse response) {
-        Log.i(TAG, "UpdateTurnList response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "UpdateTurnList response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
@@ -785,22 +788,22 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onGetWayPointsResponse(GetWayPointsResponse response) {
-        Log.i(TAG, "GetWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "GetWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSubscribeWayPointsResponse(SubscribeWayPointsResponse response) {
-        Log.i(TAG, "SubscribeWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SubscribeWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onUnsubscribeWayPointsResponse(UnsubscribeWayPointsResponse response) {
-        Log.i(TAG, "UnsubscribeWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "UnsubscribeWayPoints response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnWayPointChange(OnWayPointChange notification) {
-        Log.i(TAG, "OnWayPointChange notification from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnWayPointChange notification from SDL: " + notification);
     }
 
     @Override
@@ -813,41 +816,41 @@ public class SdlService extends Service implements IProxyListenerALM {
 
     @Override
     public void onGenericResponse(GenericResponse response) {
-        Log.i(TAG, "Generic response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "Generic response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onGetSystemCapabilityResponse(GetSystemCapabilityResponse response) {
-        Log.i(TAG, "GetSystemCapabilityResponse from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "GetSystemCapabilityResponse from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSendHapticDataResponse(SendHapticDataResponse response){
-        Log.i(TAG, "SendHapticData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SendHapticData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onButtonPressResponse(ButtonPressResponse response) {
-        Log.i(TAG, "ButtonPress response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "ButtonPress response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onSetInteriorVehicleDataResponse(SetInteriorVehicleDataResponse response) {
-        Log.i(TAG, "SetInteriorVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "SetInteriorVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onGetInteriorVehicleDataResponse(GetInteriorVehicleDataResponse response) {
-        Log.i(TAG, "GetInteriorVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
+        broadcastLogger.Info(TAG, "GetInteriorVehicleData response from SDL: " + response.getResultCode().name() + " Info: " + response.getInfo());
     }
 
     @Override
     public void onOnInteriorVehicleData(OnInteriorVehicleData notification) {
-        Log.i(TAG, "OnInteriorVehicleData from SDL: " + notification);
+        broadcastLogger.Info(TAG, "OnInteriorVehicleData from SDL: " + notification);
     }
 
     @Override
     public void onOnRCStatus(OnRCStatus status) {
-        Log.i(TAG, "onOnRCStatus from SDL: " + status);
+        broadcastLogger.Info(TAG, "onOnRCStatus from SDL: " + status);
     }
 }
