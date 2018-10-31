@@ -99,23 +99,23 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 switch ((Defines.LogLevel)intent.getSerializableExtra(LOGGER_LVL)) {
                     case INFO:
-                        Logger.Info(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        Logger.Info(logger, intent.getStringExtra(LOGGER_TAG),  "[i] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     case DEBUG:
-                        Logger.Debug(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        Logger.Debug(logger, intent.getStringExtra(LOGGER_TAG), "[d] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     case ERROR:
-                        Logger.Error(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        Logger.Error(logger, intent.getStringExtra(LOGGER_TAG), "[e] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     case VERBOSE:
-                        Logger.Verbose(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        Logger.Verbose(logger, intent.getStringExtra(LOGGER_TAG), "[v] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     case WARNING:
-                        Logger.Warning(logger, intent.getStringExtra(LOGGER_TAG), intent.getStringExtra(LOGGER_MSG));
+                        Logger.Warning(logger, intent.getStringExtra(LOGGER_TAG), "[w] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     default:
