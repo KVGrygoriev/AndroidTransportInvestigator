@@ -84,13 +84,14 @@
                 />
 
             <Button
-                android:id="@+id/btnAcceptTransport"
+                android:id="@+id/btnAcceptResetTransport"
                 android:layout_width="180sp"
                 android:layout_height="wrap_content"
                 android:text="@string/btnAcceptTransport"
                 android:layout_weight="1"
                 android:textSize="15sp"
                 />
+
         </RadioGroup>
 
         <TextView

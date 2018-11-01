@@ -6,6 +6,7 @@
     <string name="btnTcp">TCP</string>
     <string name="btnAdjustTransport">Adjust Transport</string>
     <string name="btnAcceptTransport">Accept</string>
+    <string name="btnResetTransport">Reset</string>
 
     <string name="transportLabel">Transport type:\n</string>
     <string name="loggerInit">Logger has been inited\n</string>

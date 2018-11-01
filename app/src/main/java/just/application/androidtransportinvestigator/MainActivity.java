@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     RadioGroup transportRadioGroup;
     RadioButton btnBt, btnUsb, btnTcp;
-    Button btnAdjustTransport, btnAcceptTransport;
+    Button btnAdjustTransport, btnAcceptResetTransport;
     TextView logger;
 
     @Override
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         transportRadioGroup = (RadioGroup) findViewById(R.id.transportRadioGroup);
 
         btnAdjustTransport = (Button) findViewById(R.id.btnAdjustTransport);
-        btnAcceptTransport = (Button) findViewById(R.id.btnAcceptTransport);
+        btnAcceptResetTransport = (Button) findViewById(R.id.btnAcceptResetTransport);
 
         logger = (TextView) findViewById(R.id.loggerDisplay);
         logger.setMovementMethod(new ScrollingMovementMethod());
@@ -168,6 +168,8 @@ public class MainActivity extends AppCompatActivity {
                         + ") transport selected; "
                         + BtSecurityLevelToString(bluetoothSecurityLevel)
                         + " security level");
+
+                transportType = btType;
             }
         });
 
@@ -185,41 +187,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnAcceptTransport.setOnClickListener(new View.OnClickListener() {
+        btnAcceptResetTransport.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                btnAcceptTransport.setEnabled(false);
-                btnAdjustTransport.setEnabled(false);
+                if (btnAcceptResetTransport.getText().toString().equals(getResources().getString(R.string.btnAcceptTransport))) { //TODO make another way
+                    btnAcceptResetTransport.setText(R.string.btnResetTransport);
 
-                for (int i = 0 ; i < transportRadioGroup.getChildCount(); ++i) {
-                    ((RadioButton)transportRadioGroup.getChildAt(i)).setEnabled(false);
-                }
 
-                /**
-                 * Setting needed fields and creating proxy
-                 */
-                if (transportType.equals(MBT)) {
-                    Logger.Debug(logger, TAG, "SdlReceiver.queryForConnectedService()");
-                    SdlReceiver.queryForConnectedService(v.getContext());
+                    EnableWidgets(false);
+
+                    StartSDLTransportService(v.getContext());
                 } else {
-                    if (transportType.equals(TCP) || transportType.equals(LBT)) {
-                        Intent proxyIntent = new Intent(v.getContext(), SdlService.class);
-                        proxyIntent.putExtra("TransportType", transportType);
+                    btnAcceptResetTransport.setText(R.string.btnAcceptTransport);
 
-                        switch (transportType) {
-                            case MBT:
-                                proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
-                                break;
+                    EnableWidgets(true);
 
-                            case TCP:
-                                proxyIntent.putExtra("UserIp", userIp);
-
-                            default:
-                                break;
-                        }
-
-                        startService(proxyIntent);
-                    }
+                    StopSDLTransportService(v.getContext());
                 }
             }
         });
@@ -261,5 +244,49 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void StopSDLTransportService(Context context) {
+        Intent proxyIntent = new Intent(context, SdlService.class);
+
+        stopService(proxyIntent);
+    }
+
+    private void StartSDLTransportService(Context context) {
+
+        /**
+         * Setting needed fields and creating proxy
+         */
+        if (transportType.equals(MBT)) {
+            Logger.Debug(logger, TAG, "SdlReceiver.queryForConnectedService()");
+            SdlReceiver.queryForConnectedService(context);
+        } else {
+            if (transportType.equals(TCP) || transportType.equals(LBT)) {
+                Intent proxyIntent = new Intent(context, SdlService.class);
+                proxyIntent.putExtra("TransportType", transportType);
+
+                switch (transportType) {
+                    case MBT:
+                        proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
+                        break;
+
+                    case TCP:
+                        proxyIntent.putExtra("UserIp", userIp);
+
+                    default:
+                        break;
+                }
+
+                startService(proxyIntent);
+            }
+        }
+    }
+
+    private void EnableWidgets(boolean value) {
+        btnAdjustTransport.setEnabled(value);
+
+        for (int i = 0 ; i < transportRadioGroup.getChildCount(); ++i) {
+            ((RadioButton)transportRadioGroup.getChildAt(i)).setEnabled(value);
+        }
     }
 }
