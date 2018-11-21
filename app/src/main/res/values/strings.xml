@@ -11,4 +11,6 @@
     <string name="transportLabel">Transport type:\n</string>
     <string name="loggerInit">Logger has been inited\n</string>
 
+    <string name="wifiSettingNote">For testing transports by dint of ATF, the application should be connected by WIFI to a computer with ATF. Please, enable WIFI and connect to an apropriate network, or push "EXIT" and application will be closed.\n</string>
+
 </resources>
