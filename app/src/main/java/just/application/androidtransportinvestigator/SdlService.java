@@ -379,6 +379,7 @@ public class SdlService extends Service implements IProxyListenerALM {
     @Override
     public void onProxyClosed(String info, Exception e, SdlDisconnectedReason reason) {
         stopSelf();
+        
         if(reason.equals(SdlDisconnectedReason.LANGUAGE_CHANGE) && transportType.equals(Defines.TransportType.MBT)){
             Intent intent = new Intent(TransportConstants.START_ROUTER_SERVICE_ACTION);
             intent.putExtra(SdlReceiver.RECONNECT_LANG_CHANGE, true);
