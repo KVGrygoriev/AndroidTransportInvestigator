@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -58,7 +59,13 @@ public class MainActivity extends AppCompatActivity {
         if (IsEmulator()) {
             Logger.Info(logger, TAG,"Launch on Emulator");
         } else {
-            //TODO enable WIFI
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+
+            if ( WifiManager.WIFI_STATE_ENABLED != wifiManager.getWifiState()) {
+                Intent wifiSettingsIntent = new Intent(this, WifiActivity.class);
+
+                startActivity(wifiSettingsIntent);
+            }
         }
     }
 
