@@ -18,9 +18,7 @@ import android.widget.TextView;
 import com.smartdevicelink.transport.MultiplexTransportConfig;
 
 import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_LVL;
-import static just.application.androidtransportinvestigator.Defines.TransportType.LBT;
 import static just.application.androidtransportinvestigator.Defines.TransportType.MBT;
-import static just.application.androidtransportinvestigator.Defines.TransportType.TCP;
 import static just.application.androidtransportinvestigator.Defines.BT_SECURITY_LVL_KEY;
 import static just.application.androidtransportinvestigator.Defines.BT_TYPE_KEY;
 import static just.application.androidtransportinvestigator.Defines.TCP_IP_KEY;
@@ -56,6 +54,12 @@ public class MainActivity extends AppCompatActivity {
         registerListener();
 
         InitLoggerBrodcastReceiver();
+
+        if (IsEmulator()) {
+            Logger.Info(logger, TAG,"Launch on Emulator");
+        } else {
+            //TODO enable WIFI
+        }
     }
 
     @Override
@@ -295,5 +299,16 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0 ; i < transportRadioGroup.getChildCount(); ++i) {
             ((RadioButton)transportRadioGroup.getChildAt(i)).setEnabled(value);
         }
+    }
+
+    private boolean IsEmulator() {
+        return Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion")
+                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+                || "google_sdk".equals(Build.PRODUCT);
     }
 }
