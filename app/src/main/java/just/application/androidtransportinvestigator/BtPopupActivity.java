@@ -54,11 +54,12 @@ public class BtPopupActivity extends AppCompatActivity {
         switch ((Defines.TransportType)getIntent().getSerializableExtra(BT_TYPE_KEY)) {
             case MBT:
                 rdBtnMBT.setChecked(true);
-                EnableGroupButtonBtSecurityLevel(false);
+                EnableGroupButtonBtSecurityLevel(true);
                 break;
 
             case LBT:
                 rdBtnLBT.setChecked(true);
+                EnableGroupButtonBtSecurityLevel(false);
                 break;
 
             default:
@@ -161,11 +162,11 @@ public class BtPopupActivity extends AppCompatActivity {
         rdBtnGrpBtType.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int checkedId) {
-                boolean enableSecurityLevelSettings = true;
+                boolean enableSecurityLevelSettings = false;
 
                 switch (checkedId) {
                     case R.id.rdBtnMBT:
-                        enableSecurityLevelSettings = false;
+                        enableSecurityLevelSettings = true;
                         break;
 
                     default:
