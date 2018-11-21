@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
             case BT_POPUP_ACTIVITY_REQUEST_CODE:
                 btType = (Defines.TransportType)data.getSerializableExtra(BT_TYPE_KEY);
+                transportType = btType;
                 bluetoothSecurityLevel = data.getIntExtra(Defines.BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
                 break;
 
@@ -258,27 +260,32 @@ public class MainActivity extends AppCompatActivity {
          * Setting needed fields and creating proxy
          */
         if (transportType.equals(MBT)) {
-            Logger.Debug(logger, TAG, "SdlReceiver.queryForConnectedService()");
             SdlReceiver.queryForConnectedService(context);
+        }
+
+
+        Intent proxyIntent = new Intent(context, SdlService.class);
+        proxyIntent.putExtra("TransportType", transportType);
+
+        switch (transportType) {
+            case MBT:
+                proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
+                break;
+
+            case TCP:
+                proxyIntent.putExtra("UserIp", userIp);
+
+            default:
+                break;
+        }
+
+        // SdlService needs to be foregrounded in Android O and above
+        // This will prevent apps in the background from crashing when they try to start SdlService
+        // Because Android O doesn't allow background apps to start background services
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(proxyIntent);
         } else {
-            if (transportType.equals(TCP) || transportType.equals(LBT)) {
-                Intent proxyIntent = new Intent(context, SdlService.class);
-                proxyIntent.putExtra("TransportType", transportType);
-
-                switch (transportType) {
-                    case MBT:
-                        proxyIntent.putExtra("SecurityLevel", bluetoothSecurityLevel);
-                        break;
-
-                    case TCP:
-                        proxyIntent.putExtra("UserIp", userIp);
-
-                    default:
-                        break;
-                }
-
-                startService(proxyIntent);
-            }
+            startService(proxyIntent);
         }
     }
 
