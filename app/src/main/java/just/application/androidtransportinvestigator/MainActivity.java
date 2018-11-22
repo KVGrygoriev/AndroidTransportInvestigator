@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        IntentFilter intentFilter = new IntentFilter(Defines.BroadcastLoggerId.MAIN_ACTIVITY.toString());
+        IntentFilter intentFilter = new IntentFilter(Defines.BroadcastLoggerId.MAIN_ACTIVITY_LOGGER.toString());
         registerReceiver(loggerBroadcastReceiver, intentFilter);
     }
 
