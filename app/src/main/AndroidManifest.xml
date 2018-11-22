@@ -71,7 +71,11 @@
         <activity
             android:name=".BtPopupActivity"
             android:theme="@style/AppTheme.CustomTheme" />
-        <activity android:name=".WifiActivity"></activity>
+        <activity android:name=".WifiActivity" />
+
+        <service
+            android:name=".WifiMonitorService"
+            android:exported="false"></service>
     </application>
 
 </manifest>

@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,11 +38,14 @@ public class MainActivity extends AppCompatActivity {
     private String userIp = "127.0.0.1"; //172.31.239.143
 
     BroadcastReceiver loggerBroadcastReceiver;
+    BroadcastReceiver wifiMonitorBroadcastReceiver;
 
     RadioGroup transportRadioGroup;
     RadioButton btnBt, btnUsb, btnTcp;
     Button btnAdjustTransport, btnAcceptResetTransport;
     TextView logger;
+
+    private boolean isActivityOnPause;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,17 +58,15 @@ public class MainActivity extends AppCompatActivity {
 
         InitLoggerBrodcastReceiver();
 
+        InitWifiMonitorBrodcastReceiver();
+
         if (IsEmulator()) {
             Logger.Info(logger, TAG,"Launch on Emulator");
         } else {
-            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-            if ( WifiManager.WIFI_STATE_ENABLED != wifiManager.getWifiState()) {
-                Intent wifiSettingsIntent = new Intent(this, WifiActivity.class);
-
-                startActivity(wifiSettingsIntent);
-            }
+            startService(new Intent(this, WifiMonitorService.class));
         }
+
+        isActivityOnPause = false;
     }
 
     @Override
@@ -74,6 +74,19 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         unregisterReceiver(loggerBroadcastReceiver);
+        unregisterReceiver(wifiMonitorBroadcastReceiver);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isActivityOnPause = false;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isActivityOnPause = true;
     }
 
     @Override
@@ -103,7 +116,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-    * loggerBroadcastReceiver uses for log messages delivery from services/activity.
+    * wifiMonitorBroadcastReceiver used for notifying user about problem with WIFI connection
+    */
+    private void InitWifiMonitorBrodcastReceiver() {
+        wifiMonitorBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if (!isActivityOnPause) {
+                    Intent wifiSettingsIntent = new Intent(context, WifiActivity.class);
+                    startActivity(wifiSettingsIntent);
+                }
+            }
+        };
+
+        IntentFilter intentFilter = new IntentFilter(Defines.BroadcastLoggerId.WIFI_MONITOR.toString());
+        registerReceiver(wifiMonitorBroadcastReceiver, intentFilter);
+    }
+
+    /*
+    * loggerBroadcastReceiver used for log messages delivery from services/activity.
     * And further output them to the log widget.
     */
     private void InitLoggerBrodcastReceiver() {
