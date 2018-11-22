@@ -17,11 +17,11 @@ class Defines {
     public final static int MILISEC_IN_SEC = 1000;
 
 
-    enum BroadcastLoggerId { //TODO refactor name
+    enum BroadcastLoggerId {
         /**
          * Broadcast logger id, which allow to replay messages in loger-widget in main activity
          */
-        MAIN_ACTIVITY { //TODO refactor name
+        MAIN_ACTIVITY_LOGGER {
             public String toString() {
                 return "MAIN_ACTIVITY_BROADCAST_WIDGET_LOGGER";
             }

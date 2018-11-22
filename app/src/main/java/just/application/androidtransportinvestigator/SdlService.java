@@ -157,7 +157,7 @@ public class SdlService extends Service implements IProxyListenerALM {
 
         super.onCreate();
         remoteFiles = new ArrayList<>();
-        broadcastLogger = new BroadcastLogger(this, Defines.BroadcastLoggerId.MAIN_ACTIVITY.toString());
+        broadcastLogger = new BroadcastLogger(this, Defines.BroadcastLoggerId.MAIN_ACTIVITY_LOGGER.toString());
 
         //Because of Android Oreo's requirements, it is mandatory that services enter the foreground for long running tasks.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
