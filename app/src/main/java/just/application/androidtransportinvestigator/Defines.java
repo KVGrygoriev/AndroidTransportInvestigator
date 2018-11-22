@@ -14,14 +14,23 @@ class Defines {
 
     public final static String TCP_IP_KEY = "UserIp";
 
-    enum BroadcastLoggerId {
+    public final static int MILISEC_IN_SEC = 1000;
+
+
+    enum BroadcastLoggerId { //TODO refactor name
         /**
          * Broadcast logger id, which allow to replay messages in loger-widget in main activity
          */
-        MAIN_ACTIVITY {
+        MAIN_ACTIVITY { //TODO refactor name
             public String toString() {
                 return "MAIN_ACTIVITY_BROADCAST_WIDGET_LOGGER";
             }
+        },
+        /**
+         * Broadcast WIFI monitor id, notifying user about problems with WIFI network
+         */
+        WIFI_MONITOR {
+            public String toString() { return "WIFI_MONITOR_BROADCAST"; }
         }
     };
 
