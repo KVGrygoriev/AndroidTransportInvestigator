@@ -16,12 +16,29 @@
         android:textColor="@color/colorBlack"
         android:textSize="20dp" />
 
+    <EditText
+        android:id="@+id/ssidEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lblWifiNote"
+        android:text="kgrygoriev-System-Product-Name"
+        android:textSize="20dp"/>
+
+    <EditText
+        android:id="@+id/passEdit"
+        android:inputType="textPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ssidEdit"
+        android:text="NLrFvTsm"
+        android:textSize="20dp"/>
+
     <RadioGroup
         android:id="@+id/rdBtnGrpManageWifi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@+id/lblWifiNote"
+        android:layout_below="@+id/passEdit"
         android:layout_marginTop="10dp">
 
         <Button
