@@ -24,6 +24,7 @@ import static just.application.androidtransportinvestigator.Defines.BT_TYPE_KEY;
 import static just.application.androidtransportinvestigator.Defines.TCP_IP_KEY;
 import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_MSG;
 import static just.application.androidtransportinvestigator.BroadcastLogger.LOGGER_TAG;
+import static just.application.androidtransportinvestigator.WifiMonitorService.NETWORK_ACTIONS;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -122,10 +123,20 @@ public class MainActivity extends AppCompatActivity {
         wifiMonitorBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                switch ((Defines.NetworkActions)intent.getSerializableExtra(NETWORK_ACTIONS)) {
+                    case ENABLE_WIFI:
+                        if (!isActivityOnPause) {
+                            Intent wifiSettingsIntent = new Intent(context, WifiActivity.class);
+                            startActivity(wifiSettingsIntent);
+                        }
+                        break;
 
-                if (!isActivityOnPause) {
-                    Intent wifiSettingsIntent = new Intent(context, WifiActivity.class);
-                    startActivity(wifiSettingsIntent);
+                    case START_TCP:
+                        // TODO tcpClient
+                        break;
+
+                    default:
+                        break;
                 }
             }
         };
