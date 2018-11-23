@@ -9,11 +9,19 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import static just.application.androidtransportinvestigator.Defines.MILISEC_IN_SEC;
+import static just.application.androidtransportinvestigator.Defines.NetworkActions.ENABLE_WIFI;
+import static just.application.androidtransportinvestigator.Defines.NetworkActions.START_TCP;
 
 /**
  * A {@link WifiMonitorService } class for monitoring WIFI network status
  */
 public class WifiMonitorService extends IntentService {
+
+    /**
+     * Used for determinate message level
+     */
+    public final static String NETWORK_ACTIONS = "NetworkActions";
+    private Intent wifiMonitorIntend;
 
     private Timer timer = new Timer();
 
@@ -23,6 +31,8 @@ public class WifiMonitorService extends IntentService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        wifiMonitorIntend = new Intent(Defines.BroadcastLoggerId.WIFI_MONITOR.toString());
 
         timer = new Timer();
         timer.schedule(new WifiChecker(), 0, 5 * MILISEC_IN_SEC);
@@ -51,10 +61,12 @@ public class WifiMonitorService extends IntentService {
 
             if ( WifiManager.WIFI_STATE_ENABLED != wifiManager.getWifiState()) {
                 //TODO check is connection established, not only enabled
-
-                Intent wifiMonitorIntend = new Intent(Defines.BroadcastLoggerId.WIFI_MONITOR.toString());
-                sendBroadcast(wifiMonitorIntend);
+                wifiMonitorIntend.putExtra(NETWORK_ACTIONS, ENABLE_WIFI);
+            } else {
+                wifiMonitorIntend.putExtra(NETWORK_ACTIONS, START_TCP);
             }
+
+            sendBroadcast(wifiMonitorIntend);
         }
     }
 }

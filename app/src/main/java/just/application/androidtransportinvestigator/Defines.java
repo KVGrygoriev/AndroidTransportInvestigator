@@ -44,4 +44,9 @@ class Defines {
         WARNING,
         ERROR
     }
+
+    enum NetworkActions {
+        ENABLE_WIFI,
+        START_TCP
+    }
 }
