@@ -29,20 +29,20 @@ final class BroadcastLogger {
     /**
      * Activity/Service context
      */
-    private Context contenx = null;
+    private Context context = null;
 
     /**
-     * @param contenx Caller context,
+     * @param context Caller context,
      * @param broadcastIdentifier Broadcast receiver id from BroadcastLoggerId enum
      */
-    BroadcastLogger(Context contenx, String broadcastIdentifier) {
+    BroadcastLogger(Context context, String broadcastIdentifier) {
         loggerIntend = new Intent(broadcastIdentifier);
-        this.contenx = contenx;
+        this.context = context;
     }
 
     private void Log(String tag, Defines.LogLevel lvl, String msg) {
         if (null == loggerIntend
-            || null == contenx) {
+            || null == context) {
             Log.e(tag, "WidgetLogger is not inited!");
             return;
         }
@@ -51,7 +51,7 @@ final class BroadcastLogger {
         loggerIntend.putExtra(LOGGER_LVL, lvl);
         loggerIntend.putExtra(LOGGER_MSG, msg);
 
-        contenx.sendBroadcast(loggerIntend);
+        context.sendBroadcast(loggerIntend);
     }
 
     /**
