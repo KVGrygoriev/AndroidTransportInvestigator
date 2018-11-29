@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnAdjustTransport, btnAcceptResetTransport;
     TextView logger;
 
-    private TcpClient tcpClient = null;
+    Thread tcpServerThread = null;
 
     private boolean isActivityOnPause;
 
@@ -80,9 +79,9 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(loggerBroadcastReceiver);
         unregisterReceiver(wifiMonitorBroadcastReceiver);
 
-        if (null != tcpClient) {
-            tcpClient.stopClient();
-            tcpClient = null;
+        if (null != tcpServerThread) {
+            tcpServerThread.stop();
+            tcpServerThread = null;
         }
     }
 
@@ -140,8 +139,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case START_TCP:
-                        if (null == tcpClient) {
-                            new AtfConnectTask().execute("");
+                        if (null == tcpServerThread) {
+                            tcpServerThread = new Thread(new TcpServer());
+                            tcpServerThread.start();
                         }
                         break;
 
@@ -394,40 +394,5 @@ public class MainActivity extends AppCompatActivity {
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
-    }
-
-
-    /**
-     * A {@link AtfConnectTask } class responsible for connection with ATF
-     */
-    public class AtfConnectTask extends AsyncTask<String, String, TcpClient> {
-
-        @Override
-        protected TcpClient doInBackground(String... message) {
-
-            if (null == tcpClient) {
-                tcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
-                    @Override
-                    public void messageReceived(String message) {
-                        //this method calls the onProgressUpdate
-                        publishProgress(message);
-                    }
-                });
-
-                tcpClient.run();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(String... values) {
-            super.onProgressUpdate(values);
-
-            Logger.Debug(logger, TAG, "Incoming message " + values[0]);
-
-            //TODO implement message handler
-
-        }
     }
 }
