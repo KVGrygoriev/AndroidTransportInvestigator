@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*
+    /**
      * wifiMonitorBroadcastReceiver used for notifying user about problem with WIFI connection
      */
     private void InitWifiMonitorBrodcastReceiver() {
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(wifiMonitorBroadcastReceiver, intentFilter);
     }
 
-    /*
+    /**
      * loggerBroadcastReceiver used for log messages delivery from services/activity.
      * And further output them to the log widget.
      */
@@ -195,6 +195,9 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(loggerBroadcastReceiver, intentFilter);
     }
 
+    /**
+     * Initializing widgets on activity
+     */
     private void InitWidgets() {
         btnBt = (RadioButton) findViewById(R.id.rdBtnBt);
         btnUsb = (RadioButton) findViewById(R.id.rdBtnUsb);
@@ -227,6 +230,9 @@ public class MainActivity extends AppCompatActivity {
         return "FLAG_MULTI_SECURITY_OFF";
     }
 
+    /**
+     * Register listener for buttons
+     */
     private void registerListener() {
         btnBt.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -314,12 +320,20 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * The method stops SdlService as not needed
+     * @param context app context
+     */
     private void StopSDLTransportService(Context context) {
         Intent proxyIntent = new Intent(context, SdlService.class);
 
         stopService(proxyIntent);
     }
 
+    /**
+     * The method starts SdlService with appropriate transport type
+     * @param context app context
+     */
     private void StartSDLTransportService(Context context) {
 
         /**
@@ -355,6 +369,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * The method enables/disables transport's buttons
+     * @param value says should buttons be either enabled or disabled
+     */
     private void EnableWidgets(boolean value) {
         btnAdjustTransport.setEnabled(value);
 
@@ -363,6 +381,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * The method checks where the app was launched either an emulator or real device
+     * @return true if app was started on emulator, otherwise - false
+     */
     private boolean IsEmulator() {
         return Build.FINGERPRINT.startsWith("generic")
                 || Build.FINGERPRINT.startsWith("unknown")
