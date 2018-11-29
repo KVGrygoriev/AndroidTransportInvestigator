@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnAdjustTransport, btnAcceptResetTransport;
     TextView logger;
 
+    private TcpClient tcpClient = null;
+
     private boolean isActivityOnPause;
 
     @Override
@@ -62,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         InitWifiMonitorBrodcastReceiver();
 
         if (IsEmulator()) {
-            Logger.Info(logger, TAG,"Launch on Emulator");
+            Logger.Info(logger, TAG, "Launch on Emulator");
         } else {
             startService(new Intent(this, WifiMonitorService.class));
         }
@@ -76,6 +79,11 @@ public class MainActivity extends AppCompatActivity {
 
         unregisterReceiver(loggerBroadcastReceiver);
         unregisterReceiver(wifiMonitorBroadcastReceiver);
+
+        if (null != tcpClient) {
+            tcpClient.stopClient();
+            tcpClient = null;
+        }
     }
 
     @Override
@@ -95,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (RESULT_OK != resultCode) {
-            Logger.Warning(logger, TAG,"onActivityResult: resultCode is " + resultCode);
+            Logger.Warning(logger, TAG, "onActivityResult: resultCode is " + resultCode);
             return;
         }
 
@@ -105,25 +113,25 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             case BT_POPUP_ACTIVITY_REQUEST_CODE:
-                btType = (Defines.TransportType)data.getSerializableExtra(BT_TYPE_KEY);
+                btType = (Defines.TransportType) data.getSerializableExtra(BT_TYPE_KEY);
                 transportType = btType;
                 bluetoothSecurityLevel = data.getIntExtra(Defines.BT_SECURITY_LVL_KEY, MultiplexTransportConfig.FLAG_MULTI_SECURITY_OFF);
                 break;
 
             default:
-                Logger.Debug(logger, TAG,"onActivityResult: Unrecognized request code");
+                Logger.Debug(logger, TAG, "onActivityResult: Unrecognized request code");
 
         }
     }
 
     /*
-    * wifiMonitorBroadcastReceiver used for notifying user about problem with WIFI connection
-    */
+     * wifiMonitorBroadcastReceiver used for notifying user about problem with WIFI connection
+     */
     private void InitWifiMonitorBrodcastReceiver() {
         wifiMonitorBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                switch ((Defines.NetworkActions)intent.getSerializableExtra(NETWORK_ACTIONS)) {
+                switch ((Defines.NetworkActions) intent.getSerializableExtra(NETWORK_ACTIONS)) {
                     case ENABLE_WIFI:
                         if (!isActivityOnPause) {
                             Intent wifiSettingsIntent = new Intent(context, WifiActivity.class);
@@ -132,7 +140,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
 
                     case START_TCP:
-                        // TODO tcpClient
+                        if (null == tcpClient) {
+                            new AtfConnectTask().execute("");
+                        }
                         break;
 
                     default:
@@ -146,16 +156,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /*
-    * loggerBroadcastReceiver used for log messages delivery from services/activity.
-    * And further output them to the log widget.
-    */
+     * loggerBroadcastReceiver used for log messages delivery from services/activity.
+     * And further output them to the log widget.
+     */
     private void InitLoggerBrodcastReceiver() {
         loggerBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                switch ((Defines.LogLevel)intent.getSerializableExtra(LOGGER_LVL)) {
+                switch ((Defines.LogLevel) intent.getSerializableExtra(LOGGER_LVL)) {
                     case INFO:
-                        Logger.Info(logger, intent.getStringExtra(LOGGER_TAG),  "[i] " + intent.getStringExtra(LOGGER_MSG));
+                        Logger.Info(logger, intent.getStringExtra(LOGGER_TAG), "[i] " + intent.getStringExtra(LOGGER_MSG));
                         break;
 
                     case DEBUG:
@@ -220,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
     private void registerListener() {
         btnBt.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Logger.Debug(logger, TAG, ((Button)v).getText() + "(" + btType.name()
+                Logger.Debug(logger, TAG, ((Button) v).getText() + "(" + btType.name()
                         + ") transport selected; "
                         + BtSecurityLevelToString(bluetoothSecurityLevel)
                         + " security level");
@@ -231,15 +241,17 @@ public class MainActivity extends AppCompatActivity {
 
         btnUsb.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+
                 transportType = Defines.TransportType.USB;
-                Logger.Debug(logger, TAG, ((Button)v).getText() + " transport selected");
+                Logger.Debug(logger, TAG, ((Button) v).getText() + " transport selected");
             }
         });
 
         btnTcp.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+
                 transportType = Defines.TransportType.TCP;
-                Logger.Debug(logger, TAG, ((Button)v).getText() + " transport selected");
+                Logger.Debug(logger, TAG, ((Button) v).getText() + " transport selected");
             }
         });
 
@@ -346,8 +358,8 @@ public class MainActivity extends AppCompatActivity {
     private void EnableWidgets(boolean value) {
         btnAdjustTransport.setEnabled(value);
 
-        for (int i = 0 ; i < transportRadioGroup.getChildCount(); ++i) {
-            ((RadioButton)transportRadioGroup.getChildAt(i)).setEnabled(value);
+        for (int i = 0; i < transportRadioGroup.getChildCount(); ++i) {
+            ((RadioButton) transportRadioGroup.getChildAt(i)).setEnabled(value);
         }
     }
 
@@ -360,5 +372,40 @@ public class MainActivity extends AppCompatActivity {
                 || Build.MANUFACTURER.contains("Genymotion")
                 || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
                 || "google_sdk".equals(Build.PRODUCT);
+    }
+
+
+    /**
+     * A {@link AtfConnectTask } class responsible for connection with ATF
+     */
+    public class AtfConnectTask extends AsyncTask<String, String, TcpClient> {
+
+        @Override
+        protected TcpClient doInBackground(String... message) {
+
+            if (null == tcpClient) {
+                tcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
+                    @Override
+                    public void messageReceived(String message) {
+                        //this method calls the onProgressUpdate
+                        publishProgress(message);
+                    }
+                });
+
+                tcpClient.run();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+            super.onProgressUpdate(values);
+
+            Logger.Debug(logger, TAG, "Incoming message " + values[0]);
+
+            //TODO implement message handler
+
+        }
     }
 }
