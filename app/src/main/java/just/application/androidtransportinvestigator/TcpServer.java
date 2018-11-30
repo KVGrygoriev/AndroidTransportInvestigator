@@ -1,5 +1,6 @@
 package just.application.androidtransportinvestigator;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -17,16 +18,26 @@ public class TcpServer implements Runnable {
     private static final int SERVER_PORT = 12346;
 
     private ServerSocket serverSocket;
+    /**
+     * Caller Activity/Service context
+     */
+    private Context context = null;
+
+
+    TcpServer(Context context) {
+        this.context = context;
+    }
 
     public void run() {
 
         Socket socket = null;
+        BroadcastLogger broadcastLogger = new BroadcastLogger(this.context, Defines.BroadcastLoggerId.MAIN_ACTIVITY_LOGGER.toString());
 
         try {
-            Log.d(TAG, "Server started");
+            broadcastLogger.Debug(TAG, "Server started");
             serverSocket = new ServerSocket(SERVER_PORT);
         } catch (IOException e) {
-            Log.e(TAG, "Error", e);
+            broadcastLogger.Error(TAG, "Error " + e.getStackTrace());
         }
 
         while (!Thread.currentThread().isInterrupted()) {
@@ -34,17 +45,20 @@ public class TcpServer implements Runnable {
             try {
                 socket = serverSocket.accept();
 
-                TcpHandler tcpHandler = new TcpHandler(socket);
+                broadcastLogger.Debug(TAG, "New connection accepted "
+                        + socket.getInetAddress().toString() + ":" + socket.getPort());
+
+                TcpHandler tcpHandler = new TcpHandler(socket, context);
                 new Thread(tcpHandler).start();
             } catch (IOException e) {
-                Log.e(TAG, "Error", e);
+                broadcastLogger.Error(TAG, "Error " + e.getStackTrace());
             }
         }
 
         try {
             serverSocket.close();
         } catch (IOException e) {
-            Log.e(TAG, "Error", e);
+            broadcastLogger.Error(TAG, "Error " + e.getStackTrace());
         }
     }
 
@@ -58,14 +72,24 @@ public class TcpServer implements Runnable {
         private BufferedReader receiveBuffer;
         private String lastReceivedCommand;
 
+        BroadcastLogger broadcastLogger;
+
+        /**
+         * Caller Activity/Service context
+         */
+        private Context context = null;
+
         /**
          * Constructor of the class.
          *
          * @param clientSocket    connected clients socket
          */
-        public TcpHandler(Socket clientSocket) {
+        public TcpHandler(Socket clientSocket, Context context) {
 
             this.clientSocket = clientSocket;
+            this.context = context;
+
+            broadcastLogger = new BroadcastLogger(this.context, Defines.BroadcastLoggerId.MAIN_ACTIVITY_LOGGER.toString());
 
             try {
                 //sends the message to the server
@@ -74,7 +98,7 @@ public class TcpServer implements Runnable {
                 //receives the message which the client sends
                 receiveBuffer = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
             } catch (IOException e) {
-                Log.e(TAG, "Error", e);
+                broadcastLogger.Error(TAG, "Error " + e.getStackTrace());
             }
         }
 
@@ -86,11 +110,11 @@ public class TcpServer implements Runnable {
                     lastReceivedCommand = receiveBuffer.readLine();
 
                     if (null != lastReceivedCommand) {
-                        Log.i(TAG, "Received msg: " + lastReceivedCommand);
+                        broadcastLogger.Info(TAG, "Received msg: " + lastReceivedCommand);
                         //TODO message handler
                     }
                 } catch (IOException e) {
-                    Log.e(TAG, "Error", e);
+                    broadcastLogger.Error(TAG, "Error " + e.getStackTrace());
                 }
             }
         }
@@ -107,7 +131,7 @@ public class TcpServer implements Runnable {
                 public void run() {
 
                     if (null != sendBuffer) {
-                        Log.d(TAG, "Sending: " + message);
+                        broadcastLogger.Debug(TAG, "Sending: " + message);
                         sendBuffer.println(message);
                         sendBuffer.flush();
                     }

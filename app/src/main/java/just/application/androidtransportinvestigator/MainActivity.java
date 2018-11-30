@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
                     case START_TCP:
                         if (null == tcpServerThread) {
-                            tcpServerThread = new Thread(new TcpServer());
+                            tcpServerThread = new Thread(new TcpServer(context));
                             tcpServerThread.start();
                         }
                         break;
