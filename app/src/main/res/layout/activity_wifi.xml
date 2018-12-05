@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ssidEdit"
-        android:text="NLrFvTsm"
+        android:text="AV4CrKqQ"
         android:textSize="20dp"/>
 
     <RadioGroup
