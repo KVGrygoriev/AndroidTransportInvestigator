@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        stopService(new Intent(this, WifiMonitorService.class));
+
         unregisterReceiver(loggerBroadcastReceiver);
         unregisterReceiver(wifiMonitorBroadcastReceiver);
 
