@@ -232,6 +232,24 @@ public class MainActivity extends AppCompatActivity {
         return "FLAG_MULTI_SECURITY_OFF";
     }
 
+    public void OnStartSDL() {
+        
+        if (btnAcceptResetTransport.getText().toString().equals(getResources().getString(R.string.btnAcceptTransport))) { //TODO make another way
+            btnAcceptResetTransport.setText(R.string.btnResetTransport);
+
+            EnableWidgets(false);
+
+            StartSDLTransportService(this);
+        } else {
+            btnAcceptResetTransport.setText(R.string.btnAcceptTransport);
+
+            EnableWidgets(true);
+
+            StopSDLTransportService(this);
+        }
+    }
+
+
     /**
      * Register listener for buttons
      */
@@ -266,20 +284,7 @@ public class MainActivity extends AppCompatActivity {
         btnAcceptResetTransport.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
-                if (btnAcceptResetTransport.getText().toString().equals(getResources().getString(R.string.btnAcceptTransport))) { //TODO make another way
-                    btnAcceptResetTransport.setText(R.string.btnResetTransport);
-
-
-                    EnableWidgets(false);
-
-                    StartSDLTransportService(v.getContext());
-                } else {
-                    btnAcceptResetTransport.setText(R.string.btnAcceptTransport);
-
-                    EnableWidgets(true);
-
-                    StopSDLTransportService(v.getContext());
-                }
+                OnStartSDL();
             }
         });
 
