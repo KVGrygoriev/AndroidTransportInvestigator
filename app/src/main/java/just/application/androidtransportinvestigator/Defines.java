@@ -49,4 +49,12 @@ class Defines {
         ENABLE_WIFI,
         START_TCP
     }
+
+    enum ATF_RPC {
+        UNDEFINED,
+        CONNECT_TO_SDL,
+        REMOVE_CONNECTION,
+        GET_LOIST_AVALIABLE_TRANSPORTS,
+        SEND_DATA
+    }
 }

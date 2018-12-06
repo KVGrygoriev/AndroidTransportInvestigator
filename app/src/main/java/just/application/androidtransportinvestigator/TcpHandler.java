@@ -2,6 +2,8 @@ package just.application.androidtransportinvestigator;
 
 import android.content.Context;
 
+import com.google.gson.JsonObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -88,9 +90,70 @@ class TcpHandler implements Runnable {
         thread.start();
     }
 
-    private void messageHandler(final String message) {
+    /**
+     * Function is processing incoming RPCs
+     *
+     * @param incomingJsonString incoming string with RPC
+     */
+    private void messageHandler(final String incomingJsonString) {
+
         broadcastLogger.Info(TAG, "Received msg: " + lastReceivedCommand);
 
-        //TODO getRPCType()
+        JsonObject jsonObject = just.application.androidtransportinvestigator.JsonParser.parseJsonString(incomingJsonString);
+
+        if (null == jsonObject) {
+            return;
+        }
+
+        switch (getRPCType(jsonObject)) {
+            case CONNECT_TO_SDL:
+                broadcastLogger.Debug(TAG, "Msg type: CONNECT_TO_SDL");
+              //ConnectToSDL();
+              break;
+
+            case REMOVE_CONNECTION:
+                broadcastLogger.Debug(TAG, "Msg type: REMOVE_CONNECTION");
+                break;
+
+            case GET_LOIST_AVALIABLE_TRANSPORTS:
+                broadcastLogger.Debug(TAG, "Msg type: GET_LOIST_AVALIABLE_TRANSPORTS");
+                break;
+
+            default:
+                broadcastLogger.Debug(TAG, "Msg type: default");
+                break;
+        }
     }
+
+    /**
+     * Function is picking put RPC type from jsonObject
+     *
+     * @param jsonObject object with incoming RPC
+     * @return RPC type
+     */
+
+    Defines.ATF_RPC getRPCType(final JsonObject jsonObject) {
+
+        final String messageType = just.application.androidtransportinvestigator.JsonParser.getAsString(jsonObject, "msgType");
+
+        if (messageType.equals(null)) {
+            broadcastLogger.Error(TAG, "Can't get message type. Message: " + jsonObject.toString());
+            return Defines.ATF_RPC.UNDEFINED;
+        }
+
+        if (messageType.equals("ConnectToSDL"))
+            return Defines.ATF_RPC.CONNECT_TO_SDL;
+
+        if (messageType.equals("RemoveConnection"))
+            return Defines.ATF_RPC.REMOVE_CONNECTION;
+
+        if (messageType.equals("GetListOfAvailableTransports"))
+            return Defines.ATF_RPC.GET_LOIST_AVALIABLE_TRANSPORTS;
+
+        if (messageType.equals("SendData"))
+            return Defines.ATF_RPC.SEND_DATA;
+
+        return Defines.ATF_RPC.UNDEFINED;
+    }
+
 }
